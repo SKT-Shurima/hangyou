@@ -1,5 +1,6 @@
 $text_color: #1a1a1a;
 $hint_color: #999;
+$title_color: #333;
 // 背景图片地址和大小
 @mixin bg-image($url){
 	background-image: url($url + "@2x.png");

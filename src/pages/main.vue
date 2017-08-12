@@ -1,8 +1,8 @@
 <template>
 	<div class="wrap">
 		<router-view></router-view>
-		<tabbar>
-	        <tabbar-item link='/home'>
+		<tabbar class='footerNav'>
+	        <tabbar-item link='/home' selected>
 		        <i slot='icon' class='home'></i>
 		        <span slot="label">首页</span>
 	      	</tabbar-item>
@@ -52,5 +52,9 @@ import tabbarItem from 'vux/src/components/tabbar/tabbar-item'
 	}
 	.mine{
 		@include bg-image('../images/common/mine');
+	}
+	.footerNav{
+		position: fixed;
+		bottom: 0px;
 	}
 </style>
