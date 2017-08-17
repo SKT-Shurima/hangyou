@@ -6,8 +6,8 @@
 		        <i slot='icon' class='home'></i>
 		        <span slot="label">首页</span>
 	      	</tabbar-item>
-		    <tabbar-item link='/predatemine'>
-		        <i slot='icon' class='predatemine'></i>
+		    <tabbar-item link='/preMain'>
+		        <i slot='icon' class='preMain'></i>
 		        <span slot="label">预定</span>
 		    </tabbar-item>
 	      	<tabbar-item link='/mine'>
@@ -37,8 +37,8 @@ import tabbarItem from 'vux/src/components/tabbar/tabbar-item'
 		.home{
 			@include bg-image('../images/common/home-active');
 		}
-		.predatemine{
-			@include bg-image('../images/common/predatemine-active');
+		.preMain{
+			@include bg-image('../images/common/preMain-active');
 		}
 		.mine{
 			@include bg-image('../images/common/mine-active');
@@ -47,8 +47,8 @@ import tabbarItem from 'vux/src/components/tabbar/tabbar-item'
 	.home{
 		@include bg-image('../images/common/home');
 	}
-	.predatemine{
-		@include bg-image('../images/common/predatemine');
+	.preMain{
+		@include bg-image('../images/common/preMain');
 	}
 	.mine{
 		@include bg-image('../images/common/mine');

@@ -1,6 +1,10 @@
 $text_color: #1a1a1a;
 $hint_color: #999;
 $title_color: #333;
+$detail_color: #666;
+$primary_color: #3baefe;
+$price_color: #ff6f6f;
+$border_color: #d9d9d9;
 // 背景图片地址和大小
 @mixin bg-image($url){
 	background-image: url($url + "@2x.png");
@@ -25,6 +29,31 @@ $title_color: #333;
 	right:0;
 }
 
+@mixin border-bottom-1px($color){
+	position: relative;
+	  &:after{
+	  	display: block;
+	    position: absolute;
+	    left: 0;
+	    bottom: 0;
+	    width: 100%;
+	    border-top: 1px solid $color ;
+	    content: ' '	
+	  }
+}
+ 
+ @mixin border-1px($color){
+ 	border: 1px solid $color;
+}
+ // 超出显示省略号
+ @mixin ellipsis($row){
+ 	position: relative;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: $row;
+    -webkit-box-orient: vertical;
+    word-break: break-all;
+ }
 //定位上下左右居中
 @mixin center {  
 	position: absolute;

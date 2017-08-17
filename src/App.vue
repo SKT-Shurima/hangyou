@@ -15,6 +15,11 @@
 </script>
 
 <style lang='scss'>
+@import './style/base.scss'
+	#app{
+		width: 100%;
+		height: 100%;
+	}
 	.router-fade-enter-active, .router-fade-leave-active {
 	  	transition: opacity .3s;
 	}

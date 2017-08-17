@@ -74,14 +74,14 @@ export default {
   },
 }
 </script>
-
-<style lang='scss'>
-@import '../style/mixin.scss';
+<style type="text/css" lang='scss' scoped>
+@import '../../style/mixin.scss';
 .overwrite-title-demo {
   margin-top: 5px;
 }
 .weui-cell{
 	padding: 14px 15px !important;
+	font-size: 15px;
 }
 .vux-label,.weui-label{
 	@include sc(16px, $text_color);
@@ -98,7 +98,7 @@ export default {
 		height: 12px;
 		margin-right: 6px;
 		display: inline-block;
-		@include bg-image('../images/common/tips');
+		@include bg-image('../../images/common/tips');
 	}
 }
 .submit{

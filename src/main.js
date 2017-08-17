@@ -26,7 +26,35 @@ const router = new VueRouter({
     strict: process.env.NODE_ENV !== 'production'
 })
 
-
+// 过滤器
+Vue.filter('currency',val=> {
+    if (val !== "") {
+        return `￥${val}`;
+    } 
+});
+Vue.filter('dateStyle',time=> {
+	time-=0;
+    var newDate = new Date(time);
+    let {y,m,d}={y:newDate.getFullYear(),m:newDate.getMonth()+1,d:newDate.getDate()};
+    m = trans(m);
+    d = trans(d);
+    return y +'-' + m + "-" + d ;
+});
+Vue.filter('timeStyle',time =>{
+    time -= 0;
+    var newDate = new Date(time);
+    let {h,m,s}={h:newDate.getHours(),m:newDate.getMinutes(),s:newDate.getSeconds()};
+    h = trans(h);
+    m = trans(m);
+    s = trans(s);
+    return `${h}:${m}:${s}`;
+});
+function trans (val){
+    if (val < 10) {
+      val = "0" + val ;
+    }
+    return val ;
+};
 new Vue({
     router,
     store,

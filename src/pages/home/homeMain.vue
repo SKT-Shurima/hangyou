@@ -1,5 +1,6 @@
 <template>	
-	<div class="wrap">
+	<div class="headWrap">
+	<!-- 头部轮播图 -->
 		<div class="header">
 			<div class="search">
 				<icon type="search"></icon>
@@ -7,6 +8,7 @@
 			</div>
 			<swiper auto loop :interval=3000  :list='baseList' dots-position='center'  :aspect-ratio='350/750'></swiper>	
 		</div>
+		<!-- 主体部分 -->
 		<div class="container">
 			<div class="title">
 				<i></i>
@@ -42,14 +44,37 @@
 				</flexbox>
 			</div>
 		</div>
+		<!-- 优惠券信息 -->
+		<div v-transfer-dom>
+			<x-dialog v-model='showCoupons'>
+				<div class="coupons">
+					<img src="../../images/home/coupons@3x.png">
+					<dl>
+						<dt>{{50|currency}}</dt>
+						<dd>
+							<div class='couponsType'>优惠抵扣</div>
+							<div class="couponsDetail">{{1502681028*1000|dateStyle}}至{{1502681028*1000|dateStyle}}有效</div>
+						</dd>
+					</dl>
+				</div>
+				<div @click="showCoupons=false" style='margin-top:26px;'>
+		          	<icon type='cancel' style='color:#fff;font-size: 40px;'></icon>
+		        </div>
+			</x-dialog>
+		</div>
+    </div>
 	</div>
 </template>
 <script type='text/esmascript-6'>
 import Icon from 'vux/src/components/icon'
 import {Swiper} from 'vux/src/components/swiper'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
-
+import XDialog  from 'vux/src/components/x-dialog'
+import TransferDom from 'vux/src/directives/transfer-dom'  
 	export default {
+		directives: {
+		    TransferDom
+		},
 		data(){
 			return {
 				baseList :[
@@ -57,17 +82,17 @@ import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
 				    {img: 'https://static.vux.li/demo/2.jpg'},
 				    {img: 'https://static.vux.li/demo/3.jpg'}
 				],
-
+				showCoupons: true
 			}
 		},
 		components: {
-			Swiper,Icon,Flexbox,FlexboxItem
+			Swiper,Icon,Flexbox,FlexboxItem,XDialog
 		}
 	}
 </script>
-<style type="text/css" lang='scss' scoped>
+<style type="text/css" lang='scss'>
 @import '../../style/mixin.scss';
-	.wrap{
+	.headWrap{
 		.header{
 			position: relative;
 			.search{
@@ -170,5 +195,50 @@ import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
 				}
 			}
 		}
+	}
+	.coupons{
+		position: relative;
+		img{
+			width: 100%;
+		}
+		dl{
+			position: absolute;
+			left: 0px;
+			right: 0px;
+			bottom: 15%;
+			width: 80%;
+			margin: auto;
+			overflow: hidden;
+			height: 66px;
+			background-color: #fff;
+			border-radius: 6px;
+		}
+		dt,dd{
+			float: left;
+			height: 100%;
+		}
+		dt{
+			width: 25%;
+			line-height: 66px;
+			border-right: 1px solid #ccc;
+			@include sc(16px,#ff6f6f);
+		}
+		dd{
+			width: 75%;
+			text-align: left;
+			padding: 12px 10px 10px 22px ;
+		}
+		.couponsType{
+			text-align: left;
+			line-height: 22px;
+			@include sc(12px,#333);
+		}
+		.couponsDetail{
+			@include sc(6px,#999);
+			line-height: 14px;
+		}
+	}
+	.weui-dialog{
+		top: 40%;
 	}
 </style>
