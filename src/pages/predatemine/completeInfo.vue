@@ -284,7 +284,7 @@ export default {
 			margin-right: 6px;
 		}
 		.agree{
-			@include bg_image('../../images/predatemine/checked');
+			@include bg_image('../../images/common/checked');
 		}
 		a{
 			color:$primary_color;

@@ -4,7 +4,7 @@ $title_color: #333;
 $detail_color: #666;
 $primary_color: #3baefe;
 $price_color: #ff6f6f;
-$border_color: #d9d9d9;
+$border_color: #e6e6e6;
 // 背景图片地址和大小
 @mixin bg-image($url){
 	background-image: url($url + "@2x.png");

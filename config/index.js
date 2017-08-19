@@ -24,9 +24,17 @@ module.exports = {
         port: 8028,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
-        context: [ //代理路径
-
-        ],
+        proxypath: 'http://hengyou.zertone1.com/app',
+        context:['/hengyou'],
+        // proxyTable: {
+        //     '/hengyou': {
+        //         target: 'http://hengyou.zertone1.com/app',
+        //         changeOrigin: true,
+        //         pathRewrite: {
+        //             '^/hengyou': ''
+        //         }
+        //     }
+        // },
         cssSourceMap: false
     }
 }

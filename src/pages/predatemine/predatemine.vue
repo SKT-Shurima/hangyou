@@ -12,7 +12,7 @@
   					香港铜锣湾皇悦酒店
   				</dd>
   			</dl>
-  			<h1>航班信息</h1>
+  			<h1 style="margin-top:10px;">航班信息</h1>
   			<dl v-for='item in 3'>
   				<dt class="date">
   					{{1512121211*1000|dateStyle}}
@@ -180,7 +180,7 @@ export default {
 			padding: 10px 14px;
 			background-color: #fff;
 			dl{
-				line-height: 24px;
+				line-height: 28px;
 				@include sc(14px,$title_color);
 			}
 			.site{

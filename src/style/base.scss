@@ -5,6 +5,12 @@
 	      	transform: scaleY(.7);
 		}	
 	}
+	.border-right-1px{
+		&::after{
+			-webkit-transform: scaleY(.7);
+	      	transform: scaleY(.7);
+		}	
+	}
 	.border-1px{
 		-webkit-transform: scaleY(.7);
 	    transform: scaleY(.7);
@@ -18,17 +24,45 @@
 	      	transform: scaleY(.5);
 		}	
 	}
+	.border-right-1px{
+		&::after{
+			-webkit-transform: scaleY(.5);
+	      	transform: scaleY(.5);
+		}	
+	}
 	.border-1px{
 		-webkit-transform: scaleY(.5);
 	    transform: scaleY(.5);
 	}
 }
-body{
-	background-color: #f7f7f7;
-}
 .vux-header-left{
 	color: #fff;
 }
-i,em{
-	font-style: normal;
+  body{
+  	min-height: 100vh;
+    background-color: #f7f7f7;
+  }
+
+.subBtn{
+	text-align: center;
+	margin-top: 44px;
+	background-color: #fff;
+	button{
+		display: inline-block;
+		width: 100%;
+		height: 100%;
+		outline: none;
+		border: none;
+		background-color: transparent;
+		font-size: 16px;
+		color: #3baefe;
+	}
+	button[disabled]{
+		 opacity: .7;
+	}
+} 
+a{
+	color: #fff;
 }
+a:visited {text-decoration:none;}
+a:hover {text-decoration:none;}

@@ -12,7 +12,13 @@ import completeInfo from '../pages/predatemine/completeInfo'
 import msg from '../pages/mine/msg'
 import setting from '../pages/mine/setting'
 import aboutUs from '../pages//mine/aboutUs'
-
+import orderList from '../pages/mine/orderList'
+import orderDetail from '../pages/mine/orderDetail'
+import travelers from '../pages/mine/travelers'
+import coupons from '../pages/mine/coupons'
+import login from '../pages/login/login'
+import reg from '../pages/login/reg'
+import forgetPw from '../pages/login/forgetPw'
 const path = [
     {
         path: '/',
@@ -66,7 +72,28 @@ const path = [
     },{
         path: '/aboutUs',
         component: aboutUs
+    },{
+        path: '/orderList',
+        component: orderList
+    },{
+        path: '/orderDetail',
+        component: orderDetail
+    },{
+        path:'/travelers',
+        component: travelers
+    },{
+        path: '/coupons',
+        component: coupons
+    },{
+        path: '/login',
+        component: login
+    },{
+        path: '/reg',
+        component: reg
+    },{
+        path: '/forgetPw',
+        component: forgetPw
     }
 ]
 
-export default path
+export default path ;

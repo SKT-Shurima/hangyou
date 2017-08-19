@@ -1,36 +1,34 @@
 <template>
   <div class="wrap">
     <x-header :left-options="{showBack: false}">
-    	<x-icon type="ios-close-empty" size="42"></x-icon>
+    	<i @click='keyword=""'>
+    		<x-icon type="ios-close-empty" size="42"></x-icon>
+    	</i>
     	<div class="search">
 			<icon type="search"></icon>
-			<input type="text" name="" placeholder="请输入目的地">
+			<input type="text" placeholder="请输入目的地" v-model='keyword'>
 		</div>
-		<span class="searchBtn">搜索</span>
+		<span class="searchBtn" @click='searchFn'>搜索</span>
 	</x-header>
 	<div class="container">
 		<ul>
-			<li v-for='item  in 12'>
+			<li v-for='(item,index) in goodsList' :key>
 				<dl class="list">
 		      		<dt>
-		      			<div class="name">
-		      				香港5日自由行香港5日自由行香港5日自由行香港5日自由行香港5日自由行
-		      			</div>
-		      			<div class="detail">
-		      				欢庆香港回归20周年，精选热门酒店欢庆香港回归20周年，精选热门酒店欢庆香港回归20周年，精选热门酒店
-		      			</div>
+		      			<div class="name" v-text='item.name'></div>
+		      			<div class="detail" v-text='item.explain'></div>
 		      			<div class="price">
-		      				<span><strong>{{2099|currency}}</strong>/人</span>起
-		      				<em>{{8666|currency}}/人</em> 
+		      				<span><strong>{{item.price-0|currency}}</strong>/人</span>起
+		      				<em>{{item.market_price-0|currency}}/人</em> 
 		      			</div>
 		      		</dt>
 		      		<dd>
-		      			 <x-img :src="src" webp-src="`${src}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo"  :offset="-100" container="#app"></x-img>	
+		      			 <x-img :src="item.images" webp-src="`${item.images}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo"  :offset="-100" container="#app"></x-img>	
 		      		</dd>
 		      	</dl>
 			</li>
 		</ul>
-		<div class="noMore">
+		<div class="noMore" v-show='goodsList.length'>
 			没有更多了
 		</div>
 	</div>
@@ -42,10 +40,12 @@ import XHeader from 'vux/src/components/x-header'
 import Icon from 'vux/src/components/icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
 import XImg from 'vux/src/components/x-img'
+import {search} from '../../config/api'
 export default {
   	data () {
 	    return {
-	    	src: 'https://static.vux.li/demo/1.jpg'
+	    	keyword: "",
+	    	goodsList:[]
 	    }
   	},
   	methods: {
@@ -56,6 +56,22 @@ export default {
 	    error (src, ele, msg) {
 	      	const span = ele.parentNode.querySelector('span')
 	      	span.innerText = 'load error'
+	    },
+	    searchFn(){
+	    	let params = {
+	    		keyword: this.keyword
+	    	}
+	    	search(params).then(res=>{
+	    		let {errcode,message,content} = res;
+	    		if (errcode!==0) {
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message
+					});
+      			}else{
+      				this.goodsList = content;
+      			}
+	    	})
 	    }
 	},
    	components: {
@@ -138,12 +154,13 @@ export default {
 		overflow-y: scroll;
 		overflow-x: hidden;
 		padding-bottom: 100px;
+		background-color: #fff;
 		li{
 			.list{
 				display: -webkit-box;
 				height: 120px;
 				padding: 12px 0px;
-				@include border-bottom-1px(#dedede);
+				@include border-bottom-1px($border_color);
 			}
 			dt{
 				padding-left: 12px;

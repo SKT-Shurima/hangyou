@@ -1,22 +1,18 @@
 <template>
   <div class="wrap">
     <x-header :left-options="{backText: ''}">产品详情</x-header>
-    <div class="box">
+    <div class="box" v-if='detail'>
     	<div class="mainInfo">
 	    	<div class="mainImg">
-		 		<img src="https://static.vux.li/demo/1.jpg">
+		 		<img :src='detail.images'>
 		 	</div>
 		 	<dl class="goodInfo">
-	     		<dt class="name">
-	     			香港5日游自由行
-	     		</dt>
-	     		<dd class="detail">
-	     			欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年欢庆香港回归20周年
-	     		</dd>
+	     		<dt class="name" v-text='detail.name'></dt>
+	     		<dd class="detail" v-text='detail.explain'></dd>
 	     		<dd class="price">
-	     			<span><strong>{{2099|currency}}</strong>/人</span>起
-			      	<em>{{8666|currency}}/人</em>
-			      	<i>126人购买</i> 
+	     			<span><strong>{{detail.price-0|currency}}</strong>/人</span>起
+			      	<em>{{detail.market_price|currency}}/人</em>
+			      	<i>{{detail.sale_count}}人购买</i> 
 	     		</dd>
 	     	</dl>
 	    </div>
@@ -27,7 +23,7 @@
 	     				产品详情
 	     			</span>
 	     		</h1>
-	     		<div class="intro">
+	     		<div class="intro" v-html='detail.descript'>
 	     		</div>
 	     	</div>
 	    </div>
@@ -40,16 +36,48 @@
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
+import {info} from '../../config/api'
 export default {
   	data () {
 	    return {
+	    	start_id: 1,
+	    	detail: null
 	    }
   	},
   	methods: {
-
+  		// 转义
+		escape2Html(a) {
+		 	var arrEntities={'lt':'<','gt':'>','nbsp':' ','amp':'&','quot':'"'};
+		 	return a.replace(/&(lt|gt|nbsp|amp|quot);/ig,function(all,t){return arrEntities[t];});
+		},
+  		getInfo(){
+  			let params = {
+  				start_id: this.start_id
+  			}
+  			info(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message
+					});
+      			}else{
+      				this.detail = content ;
+      				let description =  this.detail.descript ;
+      				if (description) {
+      					this.detail.descript = this.escape2Html(description);
+      				}
+      			}
+  			})
+  		}
 	},
    	components: {
     	XHeader
+  	},
+  	mounted(){
+  		this.$nextTick(()=>{
+  			this.getInfo();
+  		})
   	}
 }
 </script>
@@ -62,6 +90,7 @@ export default {
 		position: fixed;
 		top: 46px;
 		left: 0px;
+		width: 100%;
 		overflow-y: scroll; 
 	}
 	.mainInfo{

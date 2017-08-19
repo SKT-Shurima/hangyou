@@ -4,9 +4,9 @@
 		<div class="header">
 			<div class="search">
 				<icon type="search"></icon>
-				<input type="text" name="" placeholder="请输入目的地">
+				<router-link v-bind:to="''" class='inputArea'>请输入目的地</router-link>
 			</div>
-			<swiper auto loop :interval=3000  :list='baseList' dots-position='center'  :aspect-ratio='350/750'></swiper>	
+			<swiper auto loop :interval=3000  :list='bannerList' dots-position='center'  :aspect-ratio='350/750'></swiper>	
 		</div>
 		<!-- 主体部分 -->
 		<div class="container">
@@ -46,21 +46,25 @@
 		</div>
 		<!-- 优惠券信息 -->
 		<div v-transfer-dom>
-			<x-dialog v-model='showCoupons'>
-				<div class="coupons">
-					<img src="../../images/home/coupons@3x.png">
-					<dl>
-						<dt>{{50|currency}}</dt>
-						<dd>
-							<div class='couponsType'>优惠抵扣</div>
-							<div class="couponsDetail">{{1502681028*1000|dateStyle}}至{{1502681028*1000|dateStyle}}有效</div>
-						</dd>
-					</dl>
+			<div class="dialog" v-if='showCoupons'>
+				<div class="box">
+					<div class="coupons">
+						<img src="../../images/home/coupons@3x.png">
+						<dl>
+							<dt>{{coupons.discount-0|currency}}</dt>
+							<dd>
+								<div class='couponsType'>优惠抵扣</div>
+								<div class="couponsDetail">{{coupons.date_start*1000|dateStyle}}至{{coupons.date_end*1000|dateStyle}}有效</div>
+							</dd>
+						</dl>
+					</div>
+					<div style='margin-top:26px;text-align:center;'>
+						<i @click="showCoupons=false">
+							<icon type='cancel' style='color:#fff;font-size: 40px;'></icon>
+						</i>
+			        </div>
 				</div>
-				<div @click="showCoupons=false" style='margin-top:26px;'>
-		          	<icon type='cancel' style='color:#fff;font-size: 40px;'></icon>
-		        </div>
-			</x-dialog>
+			</div>
 		</div>
     </div>
 	</div>
@@ -70,23 +74,86 @@ import Icon from 'vux/src/components/icon'
 import {Swiper} from 'vux/src/components/swiper'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
 import XDialog  from 'vux/src/components/x-dialog'
-import TransferDom from 'vux/src/directives/transfer-dom'  
+import TransferDom from 'vux/src/directives/transfer-dom' 
+import {banner,hot,pushCoupon} from '../../config/api' 
 	export default {
 		directives: {
 		    TransferDom
 		},
 		data(){
 			return {
-				baseList :[
-					{img: 'https://static.vux.li/demo/1.jpg'},
-				    {img: 'https://static.vux.li/demo/2.jpg'},
-				    {img: 'https://static.vux.li/demo/3.jpg'}
-				],
-				showCoupons: true
+				bannerList :[],
+				showCoupons: false,
+				userInfo: "",
+				coupons: ''
 			}
 		},
 		components: {
 			Swiper,Icon,Flexbox,FlexboxItem,XDialog
+		},
+		methods:{
+			getBanner(){
+				let params = {
+					access_token: this.userInfo.access_token
+				}
+				banner(params).then(res=>{
+	      			let {errcode,message,content} = res;
+	      			if (errcode!==0) {
+	      				this.$vux.alert.show({
+						  	title: '',
+						  	content: message
+						});
+	      			}else{
+	      				let arr = [];
+	      				for(let i =0 ; i <content.length;i++){
+	      					let unit = {
+	      						img: content[i].image,
+	      						url: content[i].params
+	      					}
+	      					arr.push(unit);
+	      				}
+	      				this.bannerList = arr;	
+	      			}
+	      		})
+			},
+			getHot(){
+				hot().then(res=>{
+					let {errcode,message,content} = res;
+	      			if (errcode!==0) {
+	      				this.$vux.alert.show({
+						  	title: '',
+						  	content: message
+						});
+	      			}else{
+	      				
+	      			}
+				})
+			},
+			getCoupon(){	
+				let params ={
+					access_token: this.userInfo.access_token
+				}
+				pushCoupon(params).then(res=>{
+					let {errcode,message,content} = res;
+	      			if (errcode!==0) {
+	      				
+	      			}else{
+	      				this.coupons = content ;
+	      				this.showCoupons = true;
+	      			}
+				})
+			}
+		},
+		created(){
+			let userInfo =  localStorage.userInfo;
+			this.userInfo =  JSON.parse(userInfo);
+		},
+		mounted(){
+			this.$nextTick(()=>{
+				this.getBanner();
+				this.getHot();
+				this.getCoupon();	
+			})
 		}
 	}
 </script>
@@ -105,7 +172,7 @@ import TransferDom from 'vux/src/directives/transfer-dom'
 				height: 30px;
 				line-height: 30px;
 				z-index: 10;
-				text-align: center;
+				padding-left: 5%;
 				border-radius: 15px;
 				background-color: rgba(0,0,0,.3);
 				i{
@@ -113,30 +180,11 @@ import TransferDom from 'vux/src/directives/transfer-dom'
 					width: 16px;
 					height: 16px;
 					margin-right: 6px;
-					vertical-align: baseline;
+					margin-top: -4px;
 					color: #fff;
 				}
-				input{
-					outline: none;
-					border: none;
+				.inputArea{
 					@include sc(16px,#fff);
-					margin-top: 7px;
-					background-color: transparent;
-					&::-webkit-input-placeholder { /* WebKit browsers */
-					    color: #fff;
-					}
-					&:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-					    color: #fff;
-					}
-					&::-moz-placeholder { /* Mozilla Firefox 19+ */
-					    color: #fff;
-					}
-					&:-ms-input-placeholder { /* Internet Explorer 10+ */
-					    color: #fff;
-					}
-				}
-				input:active{
-					width: 80%;
 				}
 			}
 		}
@@ -196,6 +244,23 @@ import TransferDom from 'vux/src/directives/transfer-dom'
 			}
 		}
 	}
+	.dialog{
+		position: fixed;
+	    z-index: 1000;
+	    top: 0;
+	    right: 0;
+	    left: 0;
+	    bottom: 0;
+	    background: rgba(0, 0, 0, .6);
+	    .box{
+	    	position: absolute;
+			width: 80%;
+			top: 20%;
+			left: 0px;
+			right: 0px;
+			margin: auto;
+	    }
+	}
 	.coupons{
 		position: relative;
 		img{
@@ -220,13 +285,14 @@ import TransferDom from 'vux/src/directives/transfer-dom'
 		dt{
 			width: 25%;
 			line-height: 66px;
+			text-align: center;
 			border-right: 1px solid #ccc;
 			@include sc(16px,#ff6f6f);
 		}
 		dd{
 			width: 75%;
 			text-align: left;
-			padding: 12px 10px 10px 22px ;
+			padding: 12px 10px 10px 12px ;
 		}
 		.couponsType{
 			text-align: left;
@@ -237,8 +303,5 @@ import TransferDom from 'vux/src/directives/transfer-dom'
 			@include sc(6px,#999);
 			line-height: 14px;
 		}
-	}
-	.weui-dialog{
-		top: 40%;
 	}
 </style>

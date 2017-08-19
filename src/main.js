@@ -1,17 +1,19 @@
 import Vue from 'vue';
+import App from './App';
 import VueRouter from 'vue-router';
 import routes from './router/router';
 import store from './store/';
 import { routerMode } from './config/env';
 import './config/rem';
 import FastClick from 'fastclick';
-import { LoadingPlugin, ToastPlugin, DatetimePlugin, AlertPlugin } from 'vux';
-
+import AlertPlugin from 'vux/src/plugins/alert'
+import LoadingPlugin from 'vux/src/plugins/loading'
+import Toast from 'vux/src/plugins/toast'
+import {hex_md5} from './config/md5'
 
 Vue.use(LoadingPlugin)
-Vue.use(ToastPlugin)
-Vue.use(DatetimePlugin)
 Vue.use(AlertPlugin)
+Vue.use(Toast)
 if ('addEventListener' in document) {
     document.addEventListener('DOMContentLoaded', function() {
         FastClick.attach(document.body);
@@ -55,7 +57,48 @@ function trans (val){
     }
     return val ;
 };
+
+// mixins
+Vue.mixin({
+    methods:{
+        hex_md5(val){
+            return hex_md5(val);
+        },
+        checkPhone(phone){
+            if (phone === '') {
+                this.$vux.alert.show({
+                    title: '',
+                    content: '请输入手机号'
+                })
+                return false ;
+            } else {
+                let reg = /^1[3|4|5|7|8][0-9]\d{4,8}$/g ;
+                if (!reg.test(phone)) {
+                    this.$vux.alert.show({
+                        title: '',
+                        content: '请输入正确手机号'
+                    });
+                    return false ;
+                }
+            }
+            return true;
+        },
+        checkVal(val,msg){
+            if (val==="") {
+                this.$vux.alert.show({
+                    title: '',
+                    content: `请输入${msg}`
+                });
+                return false;
+            }
+            return true;
+        }
+    }
+})
 new Vue({
-    router,
-    store,
-}).$mount('#app')
+  el: '#app',
+  router,
+  store,
+  template: '<App/>',
+  components: { App }
+})

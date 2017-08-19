@@ -1,0 +1,141 @@
+.wrap{
+		width: 100%;
+		height: 100%;
+	}
+	.vux-header{
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		z-index: 99;
+		width: 100%;
+		box-shadow: 0px 0px 4px 2px rgba(0,0,0,.1);
+		.login{
+			width: 50px;
+			height: 24px;
+			@include sc(14px,#fff);
+			position: absolute;
+			top: 0px;
+			bottom: 0px;
+			right: 14px;
+			margin: auto;
+			display: inline-block;
+			@include border-1px(#fff);
+			border-radius: 5px;
+			background-color: transparent;
+		}
+	}
+	.container{
+		position: relative;
+		width: 100%;
+		height: 100%;
+		background-color: #4fb5fd;
+	}
+	.box{
+		width: 72%;
+		position: absolute;
+		top: 20%;
+		left: 0px;
+		right: 0px;
+		margin: auto;
+		div{
+			width: 100%;
+			height: 40px;
+			line-height: 40px;
+			border-radius: 5px;
+		}
+	}
+	.codeBox{
+		height: 40px;
+		line-height: 40px;
+		margin-bottom: 20px;
+		dt{
+			width: 60%;
+			float: left;
+			
+			border-radius: 5px;
+		}
+		dd{
+			width: 40%;
+			float: right;
+			padding-left: 10px;
+			button{
+				display: inline-block;
+				width: 100%;
+				height: 40px;
+				@include border-1px(#fff);
+				@include sc(14px,#fff);
+				border-radius: 5px;
+				background-color: transparent;
+			}
+		}
+	}
+	.inputBox{
+		margin-bottom: 20px;
+		background-color: rgba(255,255,255,.4);
+		i{
+			display: inline-block;
+			width: 24px;
+			height: 24px;
+			vertical-align: -7px;
+			margin: 0px 10px;
+		}
+		input{
+			width: 60%;
+			line-height: 20px;
+			outline: none;
+			background-color: transparent;
+			border: none;
+			@include sc(14px,#fff);
+		}
+		.visible,.notVisible{
+			float: right;
+			margin-top: 6px;
+		}
+	}
+	.phone{
+		@include bg_image('../../images/login/phone');
+	}
+	.code{
+		@include bg_image('../../images/login/code');
+	}
+	.nickname{
+		@include bg_image('../../images/login/nickname');
+	}
+	.password{
+		@include bg_image('../../images/login/lock');
+	}
+	.visible{
+		@include bg_image('../../images/login/visible');
+	}
+	.notVisible{
+		@include bg_image('../../images/login/notVisible');
+	}
+	.other{
+		a{
+			@include sc(16px,#fff);
+		}
+		.reg{
+			float: left;
+		}
+		.forget{
+			float: right;
+		}
+	}
+	.agreement{
+		@include sc(13px,#fff);
+		i{
+			display: inline-block;
+			width: 16px;
+			height: 16px;
+			vertical-align: -4px;
+			@include border-1px(#ddd);
+			margin-right: 6px;
+			background-color: #fff;
+		}
+		.agree{
+			@include bg_image('../../images/common/checked');
+		}
+		a{
+			color: #ffc103;
+		}
+	}

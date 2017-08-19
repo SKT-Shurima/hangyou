@@ -41,14 +41,17 @@ var options = {
     target: proxypath,
     changeOrigin: true,
 }
-if (context.length) {
-    server.use(proxyMiddleware(context, options))
-}
+// if (context.length) {
+//     server.use(proxyMiddleware(context, options))
+// }
 
-// server.use(proxyMiddleware('/payapi', {
-//     target: 'https://pay.ele.me',
-//     changeOrigin: true,
-// }))
+server.use(proxyMiddleware('/hengyou', {
+    target: 'http://hengyou.zertone1.com/app',
+    changeOrigin: true,
+    pathRewrite: {
+        '^/hengyou': ''
+    }
+}))
 // server.use(proxyMiddleware('/m.ele.me@json', {
 //     target: 'https://crayfish.elemecdn.com',
 //     changeOrigin: true,

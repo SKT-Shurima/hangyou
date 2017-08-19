@@ -4,16 +4,14 @@
   	<div class="container">
 		<div class="hotelInfo">
 			<h1>酒店信息<a href="">详情</a></h1>
-			<dl v-for='item in 1'>
+			<dl v-for='(item,index) in hotel' :key='index'>
 				<dt class="date">
-					{{1512121211*1000|dateStyle}}至{{1512121211*1000|dateStyle}}
+					{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}
 				</dt>
-				<dd class="name">
-					香港铜锣湾皇悦酒店
-				</dd>
+				<dd class="name" v-text='item.name'></dd>
 				<dd class="image">
   				<span>Loading...</span>
-  				<x-img :src="src" :webp-src="`${src}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>
+  				<x-img :src="item.images" :webp-src="`${item.images}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>
   			</dd>
 			</dl>
 		</div>
@@ -100,10 +98,13 @@
 import XHeader from 'vux/src/components/x-header'
 import XImg from 'vux/src/components/x-img'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
+import {hotelFlightDetail} from '../../config/api'
 export default {
   	data () {
 	    return {
-	    	src: 'https://static.vux.li/demo/1.jpg'
+	    	userInfo: '',
+	   		hotel: [],
+	   		flight: []
 	    }
   	},
 	components: {
@@ -111,15 +112,36 @@ export default {
   	},
   	methods: {
   		success (src, ele) {
-		    console.log('success load', src)
 		    const span = ele.parentNode.querySelector('span')
 		    ele.parentNode.removeChild(span)
 		},
 	    error (src, ele, msg) {
-	      	console.log('error load', msg, src)
 		    const span = ele.parentNode.querySelector('span')
 		    span.innerText = 'load error'
+	    },
+	    getDetail(){
+	    	let params = {
+	    		access_token: this.userInfo.access_token,
+	    		start_id: "",
+	    		order_id:""
+	    	}
+	    	hotelFlightDetail(params).then(res=>{
+	    		let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message
+					});
+      			}else{
+      				this.hotel = content.hotel ;
+      				this.flight =  content.flight;
+      			}
+	    	})
 	    }
+	},
+	created(){
+		let userInfo =  localStorage.userInfo;
+		this.userInfo =  JSON.parse(userInfo);
 	},
   	mounted(){
   		this.$nextTick(()=>{
