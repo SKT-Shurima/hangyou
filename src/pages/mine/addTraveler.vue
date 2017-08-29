@@ -35,7 +35,7 @@ import XDialog from 'vux/src/components/x-dialog'
 import Radio from 'vux/src/components/radio' 
 import XButton from 'vux/src/components/x-button'  
 import TransferDom from 'vux/src/directives/transfer-dom' 
-import {addPassenger} from '../../config/api' 
+import {addPassenger,passengerInfo,editPassenger} from '../../config/api' 
 export default {
 	directives: {
 	    TransferDom
@@ -61,18 +61,96 @@ export default {
 	      		key: 1,
 	      		value: '女'
 	      	}],
-	      	reqParams: ""
+	      	reqParams: {},
+	      	userInfo: {}
 	    }
   	},
 	components: {
     	XHeader,XInput, Group,Datetime,Cell,XDialog,Radio,XButton 
   	},
   	methods: {
+  		getPassengerInfo(){
+  			let  params ={
+  				access_token: this.userInfo.access_token,
+  				customer_passenger_id: this.reqParams.customer_passenger_id
+  			}
+  			passengerInfo(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.name= content.name;
+      				this.surname= content.surname;
+      				this.lname =content.lname;
+      				this.card = content.card;
+      				this.chooseSexText = content.sex==="0"?"男":"女";
+      				this.sex = content.sex -0 ;
+      				this.birthday = dateStyle(content.birthday*1000);
+      				function dateStyle (time){
+						time-=0;
+					    var newDate = new Date(time);
+					    let {y,m,d}={y:newDate.getFullYear(),m:newDate.getMonth()+1,d:newDate.getDate()};
+					    m = trans(m);
+					    d = trans(d);
+					    return y +'-' + m + "-" + d ;
+					}
+					function trans (val){
+					    if (val < 10) {
+					      val = "0" + val ;
+					    }
+					    return val ;
+					};
+      			}
+  			})
+  		},
   		birthChange (value) {
     	},
     	sexChange (value, label) {
       		this.chooseSexText = label;
       		this.chooseSex =  false;
+    	},
+    	add(params){
+    		addPassenger(params).then(res=>{
+				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				let _this = this;
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message,
+					  	onHide(){
+					  		let storePassenger = []
+				  			if (sessionStorage.passenger) {
+				  				storePassenger = JSON.parse(sessionStorage.passenger);
+				  			}
+				  			let addArr = [content];
+				  			storePassenger = storePassenger.concat(addArr);
+				  			sessionStorage.passenger = JSON.stringify(storePassenger);
+					  		_this.$router.replace('/completeInfo');
+					  	}
+					});
+					
+      			}
+			})
+    	},
+    	edit(params){
+    		editPassenger(params).then(res=>{
+				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				let _this = this;
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message,
+					  	onHide(){
+					  		_this.$router.back(-1);
+					  	}
+					});
+					
+      			}
+			})
     	},
     	ensure(){
     		this.name = this.name.trim();
@@ -97,33 +175,13 @@ export default {
     				birthday: birth,
     				card: this.card
     			}
-    			if (this.reqParams) {
-    				params.customer_passenger = this.reqParams.customer_passenger_id ;
+    			if (this.reqParams.customer_passenger_id) {
+    				params.customer_passenger_id = this.reqParams.customer_passenger_id ;
+    				this.edit(params);
     			}
-    			addPassenger(params).then(res=>{
-    				let {errcode,message,content} = res;
-	      			if (errcode!==0) {
-	      				this.errcode(errcode,message);
-	      			}else{
-	      				let _this = this;
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message,
-						  	onHide(){
-						  		let addTraveler = _this.reqParams.addTraveler;
-								if (addTraveler) {
-									let storePassenger = JSON.parse(sessionStorage.passenger);
-									storePassenger.push(content);
-									sessionStorage.passenger = JSON.stringify(storePassenger);
-									_this.$router.replace('/completeInfo');
-								}else{
-									_this.$router.back(-1);
-								}
-						  	}
-						});
-						
-	      			}
-    			})
+    			if(this.reqParams.addTraveler){
+    				this.add(params);
+    			}
     		}else{
     			this.$vux.alert.show({
 				  	title: '',
@@ -133,10 +191,6 @@ export default {
     	}
 	},
   	created(){
-  		let hash = location.hash;
-  		if (hash.indexOf("?")>-1) {
-  			this.reqParams = this.getHashReq();	
-  		}
   		let userInfo =  localStorage.userInfo;
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
@@ -151,6 +205,13 @@ export default {
 			  	}
 			})
 		}
+		let hash = location.hash;
+  		if (hash.indexOf("?")>-1) {
+  			this.reqParams = this.getHashReq();	
+  			if (this.reqParams.customer_passenger_id) {
+				this.getPassengerInfo();
+			}
+  		}
   	}	
 }
 </script>

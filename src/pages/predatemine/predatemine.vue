@@ -63,8 +63,8 @@
   					<v-number @onchange='changeChildNum' :value='child_count'></v-number>
   				</li>
   				<li>
-  					<span>房间</span>&nbsp;&nbsp;单间差<em v-show='priceInfo.difference-0'>{{priceInfo.difference|currency}}</em>
-  					<v-number :value='room_count' @onchange='changeRoomNum'></v-number>
+  					<span>房间</span>&nbsp;&nbsp;单人差<em v-show='(priceInfo.difference-0)&&((adult_count-0)%2)'>{{priceInfo.difference|currency}}</em>
+  					<i v-text=' Math.ceil(adult_count/2)' class="diffCount" v-show='(adult_count-0)%2'></i>
   				</li>
   			</ul>
   		</div>
@@ -98,7 +98,6 @@ export default {
 	    	dateList: [],
 	    	adult_count: 0,
 	    	child_count: 0,
-	    	room_count: 0,
 	    	reqParams: {},
 	    	date_price: [],
 	    	date_price_id: '',
@@ -186,6 +185,10 @@ export default {
   				if (priceArr[priceIndex]) {
   					priceDate = priceArr[priceIndex].date-0
   				};
+  				while(priceDate<date){
+  					priceIndex++;
+  					break;
+  				}
   				if (date===priceDate) {
   					obj = {
 	  					date: j,
@@ -209,6 +212,7 @@ export default {
   				if (j===this.day) {
   					this.priceInfo = obj;
   					this.date_price_id = obj.date_price_id;
+  					this.countPrice();
   				}
 			  	arr.push(obj);
   			}
@@ -225,7 +229,7 @@ export default {
   			}
   			// 分割
   			let dateArr = [];
-  			let index = 1 ;
+  			let index = 0 ;
   			for(let m = 0 ; m < arr.length ;m =7*index){
   				let weekArr = [];
   				for (let n = 0; n < 7; n++) {
@@ -293,10 +297,6 @@ export default {
   			this.child_count = val;
   			this.countPrice();
   		},
-  		changeRoomNum(val){
-  			this.room_count = val;
-  			this.countPrice();
-  		},
   		chooseSpecial(){
   			let date_price_id =  this.date_price_id.trim();
   			let count = this.adult_count-0;
@@ -309,8 +309,8 @@ export default {
   					start_id: this.reqParams.start_id,
   					date_price_id: this.date_price_id,
   					totalprice: this.totalprice,
-  					start_time: this.flight[0].start_date + this.flight[0].end_extra*86400,
-  					end_time: this.flight[len].start_date
+  					start_time: this.flight[0].start_date ,
+  					end_time: this.flight[len].start_date+ this.flight[0].end_extra*86400
   				}
   				sessionStorage.preBaseInfo = JSON.stringify(preBaseInfo);
   				this.$router.push(`./chooseSpecial?start_id=${this.reqParams.start_id}`);
@@ -329,7 +329,10 @@ export default {
   			}
   		},
   		countPrice(){
-  			this.totalprice = this.priceInfo.adult_price*this.adult_count+this.priceInfo.child_price*this.child_count+this.priceInfo.difference*this.room_count;
+  			this.totalprice = this.priceInfo.adult_price*this.adult_count+this.priceInfo.child_price*this.child_count;
+  			if ((this.adult_count-0)%2) {
+  				this.totalprice += this.priceInfo.difference * Math.ceil(this.adult_count/2);
+  			}
   		}
 	},
 	created(){
@@ -497,6 +500,14 @@ export default {
 			}
 			em{
 				@include sc(12px,$price_color);
+			}
+			.diffCount{
+				display: inline-block;
+				width: 82px;
+				height: 20px;
+				text-align: center;
+				float: right;
+				font-size: 16px;
 			}
 		}	
 	}

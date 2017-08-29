@@ -12,7 +12,7 @@
     			
     		</div>
     		<div class="avater">
-    			<img :src='userInfo.avater'>
+    			<!-- <img :src='userInfo.avater'> -->
     		</div>
     		<dl class="info">
     			<dt class="name" v-text='userInfo.nickname'></dt>
@@ -131,6 +131,8 @@ export default {
 		left: 0px;
 		right: 0px;
 		margin: auto;
+		border-radius: 50%;
+		@include bg_image('../../images/mine/avater');
 		img{
 			width: 100%;
 			height: 100%;

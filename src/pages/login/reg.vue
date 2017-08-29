@@ -27,7 +27,7 @@
 			    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="#/protocol">《用户条款及协议》</a>
 			    </div>
 	    		<div class="subBtn">
-	    			<button :disabled='!(agreement&&phone&&passwd&&confirm_passwd&&verify_code)' @click='reg'>注册</button>
+	    			<button :disabled='!(agreement&&phone&&passwd&&verify_code)' @click='reg'>注册</button>
 	    		</div> 
 	    	</div>
 	  	</div>

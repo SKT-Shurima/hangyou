@@ -117,13 +117,14 @@ export default {
 		top: 46px;
 		left: 0px;
 		width: 100%;
+		height: 100vh;
 		overflow-y: scroll; 
 	}
 	.mainInfo{
 		background-color: #fff;
 	}
 	.container{
-		padding: 0px 16px 100px;
+		padding: 0px 16px 200px;
 		background-color: #fff;
 	}
 	.mainImg{
@@ -175,6 +176,7 @@ export default {
 		.title{
 			text-align: center;
 			font-size: 16px;
+			height: 32px;
 			span{
 				padding: 6px 0px;
 				border-bottom: 2px solid  $primary_color;

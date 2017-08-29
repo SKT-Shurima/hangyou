@@ -109,10 +109,20 @@ export const passenger = params =>{
 	params= trans(params);
 	return axios.get(`${base}/userAction/passenger?${params}`).then(res=>res.data);
 }
+// 获取旅客信息
+export const passengerInfo = params =>{
+	params= trans(params);
+	return axios.get(`${base}/userAction/passengerInfo?${params}`).then(res=>res.data);
+}
 // 添加旅客信息
 export const addPassenger = params =>{
 	params = trans(params);
 	return axios.post(`${base}/userAction/addPassenger`,params).then(res=>res.data);
+}
+// 编辑旅客信息
+export const editPassenger = params =>{
+	params = trans(params);
+	return axios.post(`${base}/userAction/editPassenger`,params).then(res=>res.data);
 }
 // 删除旅客
 export const delPassenger = params =>{

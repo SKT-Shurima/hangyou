@@ -1,7 +1,7 @@
 <template>
   <div class="wrap">
     <x-header :left-options="{showBack: false}">
-    	<i @click='keyword=""'>
+    	<i @click='back'>
     		<x-icon type="ios-close-empty" size="42"></x-icon>
     	</i>
     	<div class="search">
@@ -51,6 +51,9 @@ export default {
    		XHeader,Icon,Flexbox,FlexboxItem
   	},
   	methods: {
+  		back(){
+  			this.$router.replace('./home');
+  		},
 	    searchFn(){
 	    	let params = {
 	    		keyword: this.keyword

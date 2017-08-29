@@ -95,6 +95,7 @@ export default {
   			let start =  this.preBaseInfo.start_time;
   			let end =  this.preBaseInfo.end_time;
   			let day = (end-start)/86400;
+  			console.log(day);
   			let arr = [] ;
   			for (let i = 0; i < day; i++) {
   				let time = start + i*86400;

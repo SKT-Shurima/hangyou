@@ -4,6 +4,7 @@ import preMain from '../pages/predatemine/preMain'
 import mine from '../pages/mine/mineMain'
 import search from '../pages/home/search'
 import getDes from '../pages/home/getDes'
+import other from '../pages/home/other'
 import goodDetail from '../pages/predatemine/goodDetail'
 import predatemine from '../pages/predatemine/predatemine'
 import hotelFlightDetail from '../pages/predatemine/hotelFlightDetail'
@@ -52,6 +53,9 @@ const path = [
     },{
         path: '/getDes',
         component: getDes
+    },{
+        path: '/other',
+        component: other
     },{
         path: '/goodDetail',
         component: goodDetail

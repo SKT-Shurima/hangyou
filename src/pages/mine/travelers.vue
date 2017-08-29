@@ -41,7 +41,7 @@
     	</div>
 	 	<div class="submit">
 	 		<dl v-if='showCheck'>
-	 			<dt @click='addTraveler'>添加旅客</dt>
+	 			<dt @click='completeInfoAddTraveler'>添加旅客</dt>
 	 			<dd @click='ensure'>确定</dd>
 	 		</dl>
 	 		<div v-else @click='addTraveler'>
@@ -90,6 +90,9 @@ export default {
       				
       			}
   			})
+  		},
+  		completeInfoAddTraveler(){
+  			this.$router.push('/addTraveler?addTraveler=true');
   		},
   		addTraveler(){
   			this.$router.push('/addTraveler');

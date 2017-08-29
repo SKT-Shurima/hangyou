@@ -2,13 +2,28 @@
   <div class="wrap">
    	<x-header :left-options="{showBack: false}">预定</x-header>
     <div class="container">
-		<scroller lock-y scrollbar-x   class='scrollBox'>
+		<div  class='scrollBox'>
 	      	<div class="scroll" :style='{width:102*category.length+12+"px"}'>
-	        	<div class="scroll-item" v-for="(item,index) in category" :key='index'>
+	        	<div class="scroll-item" v-for="(item,index) in category" :key='index' @click='getcategory(item.category_id,index)' :class='{"scrollTab":tabIndex===index}' >
 	        		<img :src='item.images'>
+	        		<div class="scroll-name-box" >
+	        			<span v-text='item.name' class="scroll-name"></span>	
+	        		</div>
 	        	</div>
 	      	</div>
-	    </scroller>
+	    </div>
+	  <!--  <scroller lock-y scrollbar-x>
+	   		<div class='scrollBox' :style='{width:102*category.length+12+"px"}'>
+	   			<div class="scroll">
+		        	<div class="scroll-item" v-for="(item,index) in category" :key='index' @click='getcategory(item.category_id,index)' :class='{"scrollTab":tabIndex===index}'>
+		        		<img :src='item.images' >
+		        		<div class="scroll-name-box">
+		        			<span v-text='item.name' class="scroll-name"></span>	
+		        		</div>
+		        	</div>
+		      	</div>
+	   		</div>
+	    </scroller> -->
 	    <ul class="panel">
 	    	<li v-for='(item,index) in destination' :key='index'>
 	    		<dl @click='getDes(item.destination_id)'>
@@ -37,18 +52,23 @@ import {getCategory} from '../../config/api'
 export default {
   	data () {
 	    return {
-	    	page: 1,
+	    	page: "",
 	    	category:[],
-	    	destination:[]
+	    	destination:[],
+	    	tabIndex: 0
 	    }
   	},
   	methods: {
   		getDes(id){
   			this.$router.push(`/getDes?destination_id=${id}`);
   		},
-	    getcategory(){
+	    getcategory(id,index){
 	    	let params ={
 	    		page: this.page
+	    	}
+	    	if(id){
+	    		params.category_id = id;
+	    		this.tabIndex = index;
 	    	}
 	    	getCategory(params).then(res=>{
 	    		let {errcode,message,content} = res;
@@ -58,8 +78,8 @@ export default {
 					  	content: message
 					});
       			}else{
-      				this.category = this.category.concat(content.category);
-      				this.destination = this.destination.concat(content.destination);
+      				this.category = content.category;
+      				this.destination = content.destination;
       			}
     		})
 	    }
@@ -86,27 +106,59 @@ export default {
 	background-color: #f7f7f7;
 }
 .scrollBox{
+    overflow-x: scroll;
 	@include border-bottom-1px($border_color);
 }
 .scroll {
+	width: 100%;
  	height: 95px;
  	padding: 15px 12px;
   	position: relative;
 }
+
 .scroll-item {
 	display:inline-block;
+	position: relative;
 	float: left;
 	width: 90px;
 	height: 65px;
+	padding: 2px;
+	border-radius: 6px;
 	margin-left: 12px;
+	@include border-1px(transparent);
 	img{
 	  	width: 100%;
 	  	height: 100%;
 	  	border-radius: 6px;
 	}
+	.scroll-name-box{
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 84px;
+		height: 59px;
+		background-color: rgba(0,0,0,.3);
+		border-radius: 6px;
+		.scroll-name{
+			display: inline-block;
+			position: absolute;
+			top: 0px;
+			right: 0px;
+			left: 0px;
+			bottom: 0px;
+			margin: auto;
+			width: 100%;
+			height: 15px;
+			text-align: center;
+			@include sc(15px,#fff);
+		}
+	}
 }
 .scroll-item:first-child {
   	margin-left: 0;
+}
+.scrollTab{
+	@include border-1px(#ffc104);
 }
 .panel{
 	li{
@@ -147,5 +199,32 @@ export default {
 	margin-top: 16px;
 	text-align: center;
 	@include sc(15px,$hint_color);
+}
+</style>
+<style scoped lang='scss'>
+.box1 {
+  height: 100px;
+  position: relative;
+  width: 1490px;
+}
+.box1-item {
+  width: 200px;
+  height: 100px;
+  background-color: #ccc;
+  display:inline-block;
+  margin-left: 15px;
+  float: left;
+  text-align: center;
+  line-height: 100px;
+  img{
+  	width: 100%;
+  }
+}
+.box1-item:first-child {
+  margin-left: 0;
+}
+.box2-wrap {
+  height: 300px;
+  overflow: hidden;
 }
 </style>

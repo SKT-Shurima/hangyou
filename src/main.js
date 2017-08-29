@@ -13,8 +13,6 @@ import AlertPlugin from 'vux/src/plugins/alert'
 import ConfirmPlugin from 'vux/src/plugins/confirm'
 import LoadingPlugin from 'vux/src/plugins/loading'
 import Toast from 'vux/src/plugins/toast'
-import { WechatPlugin } from 'vux'
-console.log(WechatPlugin)
 Vue.use(LoadingPlugin)
 Vue.use(ConfirmPlugin)
 Vue.use(AlertPlugin)
@@ -76,15 +74,14 @@ router.afterEach((to, from, next) => {
       window.location.href = '/index.html?t=' + timestamp + '#' + to.fullPath
     }
     let openid = mixins.methods.getCookie("openid");
-    // if (!openid) {
-    //     const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
-    //     let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
-    //         window.location.href = href;
-    // }
+    if (!openid) {
+        const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
+        let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
+            window.location.href = href;
+    }
 });
 
 
-let _this;
 new Vue({
   el: '#app',
   router,

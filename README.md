@@ -19,6 +19,6 @@ npm run dev
 
 ### 生产环境
 ```
-npm run build   //生成的wld文件夹放在服务器即可正常访问
+npm run build   
 ```
 

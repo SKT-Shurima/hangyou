@@ -1,6 +1,6 @@
 <template>
 	<div class="wrap">
-		<button @click='currentValue--;' :disabled='currentValue-0===1'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+		<button @click='currentValue--;' :disabled='currentValue-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
 		<input type="number" name="" disabled  v-model.number='currentValue'>
 		<button @click='currentValue++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
 	</div>

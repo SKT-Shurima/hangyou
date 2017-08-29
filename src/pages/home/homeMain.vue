@@ -6,7 +6,7 @@
 				<icon type="search"></icon>
 				<router-link v-bind:to="'search'" class='inputArea'>请输入目的地</router-link>
 			</div>
-			<swiper auto loop :interval=3000  :list='bannerList' dots-position='center'  :aspect-ratio='350/750'></swiper>	
+			<swiper auto loop :interval=3000  :list='bannerList' dots-position='center' :show-desc-mask='false'  :aspect-ratio='350/750'></swiper>	
 		</div>
 		<!-- 主体部分 -->
 		<div class="container">
@@ -17,8 +17,9 @@
 			<div class="box" v-for='(item,index) in mainList' :key='index'>
 				<div class="main" @click='getDes(item.main.destination_id)'>
 					<flexbox>
-						<flexbox-item>
+						<flexbox-item class='good-img-box'>
 							<img :src="item.main.cover_images">
+							<span class="good-price">{{item.main.price-0|currency}}/人起</span>
 						</flexbox-item>
 					</flexbox>
 					<div class="theme">
@@ -30,22 +31,31 @@
 					<flexbox>
 						<flexbox-item :span='1/2'>
 							<dl v-if='item.detail.left' @click='getDes(item.detail.left.destination_id)'>
-								<dt><img :src="item.detail.left.cover_images"></dt>
-								<dd class="infoName" v-text='item.detail.left.name'></dd>
+								<dt class='good-img-box'>
+									<img :src="item.detail.left.cover_images">
+									<span class="good-price">{{item.detail.left.price-0|currency}}/人起</span>
+								</dt>
+								<dd class="infoName">
+									<strong v-text='item.detail.left.name'></strong>
+								</dd>
 								<dd class="infoDetail" v-text='item.detail.left.descript'></dd>
 							</dl>
 						</flexbox-item>
 						<flexbox-item :span='1/2' style='margin-left:0px;'>
 							<dl v-if='item.detail.right' @click='getDes(item.detail.right.destination_id)'>
-								<dt><img :src="item.detail.right.cover_images"></dt>
-								<dd class="infoName" v-text='item.detail.right.name'></dd>
+								<dt class='good-img-box'>
+									<img :src="item.detail.right.cover_images">
+									<span class="good-price">{{item.detail.right.price-0|currency}}/人起</span>
+								</dt>
+								<dd class="infoName">
+									<strong v-text='item.detail.right.name'></strong>
+								</dd>
 								<dd class="infoDetail" v-text='item.detail.right.descript'></dd>
 							</dl>
 						</flexbox-item>
 					</flexbox>
 				</div>
 			</div>
-			
 		</div>
 		<!-- 优惠券信息 -->
 		<div v-transfer-dom>
@@ -108,8 +118,15 @@ import {banner,hot,pushCoupon} from '../../config/api'
 	      				let arr = [];
 	      				for(let i =0 ; i <content.length;i++){
 	      					let unit = {
-	      						img: content[i].image,
-	      						url: content[i].params
+	      						img: content[i].image
+	      					}
+	      					if (content[i].params.type==2) {
+	      						let id = content[i].params.destination_id ;
+	      						unit.url= `/getDes?destination_id=${id}`
+	      					}
+	      					if (content[i].params.type==3) {
+	      						let  website =content[i].params.website;
+	      						unit.url= `/other?website=${website}`
 	      					}
 	      					arr.push(unit);
 	      				}
@@ -225,6 +242,21 @@ import {banner,hot,pushCoupon} from '../../config/api'
 				img{
 					width: 100%;
 				}
+			}
+			.good-img-box{
+				position: relative;
+			}
+			.good-price{
+				display: inline-block;
+				position: absolute;
+				left: 0px;
+				bottom: 3px;
+				width: 100px;
+				height: 20px;
+				line-height: 20px;
+				text-align: center;
+				@include sc(10px,#fff);
+				background-color: rgba(0,0,0,.1)
 			}
 			.theme{
 				width: 100%;

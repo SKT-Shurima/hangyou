@@ -23,7 +23,7 @@
 	    					<button class="default_btn" @click='cancelOrderFn(item.id)'>取消订单</button>
 	    					<button class="primary_btn" @click='payFor(item)'>立即支付</button>
 	    				</span>
-	    				<span v-if='item.order_state===2' class="primary">
+	    				<span v-if='item.order_state==="2"' class="primary">
 	    					已付款，待确认&nbsp;<button class="text_btn" @click='refundFn(item.id)'>退款</button>
 	    				</span>
 	    				<span v-if='item.order_state==="3"'>
@@ -218,7 +218,8 @@ export default {
                         // alert(res.err_code+res.err_desc+res.err_msg);
                         let  err_msg = res.err_msg;
                         if (err_msg.indexOf("ok")>-1) {
-                            _this.$router.push('./orderList');
+                            _this.getOrder();
+  							_this.getCoupons();
                         }else{
                         	_this.$router.back(-1)
                         }
