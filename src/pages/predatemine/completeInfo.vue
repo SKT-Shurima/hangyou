@@ -3,68 +3,76 @@
     <x-header :left-options="{backText: ''}">完善信息</x-header>
     <div class="container">
     	<ul class="traveler">
-    		<li v-for='item in  2'>
-    			<h1>旅客1</h1>
-    			<div  v-show='false'>
-    				<flexbox>
-				        <flexbox-item>
-				          <x-button type="default">选择旅客</x-button>
-				        </flexbox-item>
-				        <flexbox-item>
-				          <x-button type="default">填写信息</x-button>
-				        </flexbox-item>
-				    </flexbox>
-	    		</div>
-	    		<dl class="infoDetail">
-	    			<dt class="name">圆周率</dt>
+    		<li v-for='(item,index) in passenger' :key='index'> 
+    			<h1>旅客{{index+1}}</h1>
+    			<dl class="infoDetail">
+	    			<dt class="name" v-text='item.name'></dt>
 	    			<dd class="spell">
-	    				<strong>YUAN/ZHOULV</strong>
-	    				<x-icon type="ios-arrow-right" size="18"></x-icon>
+	    				<span>{{item.lname}}/{{item.surname}}</span>
 	    			</dd>
 	    			<dd class="num">
-	    				<span>护照编号：</span><em>10086</em>
+	    				<span>身份证号：</span><em v-text='item.card'></em>
 	    			</dd>
 	    		</dl>
-	    		
     		</li>
     	</ul>
+    	<div class="newAdd">
+    		<h1>旅客{{passenger.length+1}}</h1>
+			<flexbox>
+		        <flexbox-item>
+		        	<router-link :to='{path:"/travelers",query:{choose:true}}'>
+		          		<x-button type="default">选择旅客</x-button>
+		          	</router-link>
+		        </flexbox-item>
+		        <flexbox-item>
+		        	<router-link :to='{path:"/addTraveler",query:{addTraveler:true}}'>
+		          		<x-button type="default">填写信息</x-button>
+		          	</router-link>
+		        </flexbox-item>
+		    </flexbox>
+		</div>
     	<div class="contact">
-    		<div class="info">
-    			<h1>联系人信息</h1>
-	    		<group  gutter='0'>
-			      	<x-input title="姓名" name="username" placeholder="请输入联系人的姓名" is-type="china-name" placeholder-align='right'  text-align='right' ></x-input>
-			      	<x-input title="邮箱" is-type='email' name="username" placeholder="请输入联系人邮箱"  placeholder-align='right'  text-align='right'></x-input>
-			      	<x-input title="手机号码" name="username" placeholder="请输入联系人手机号码" is-type="china-mobile" placeholder-align='right'  text-align='right'></x-input>
-			    </group>
+    		<h1>联系人信息</h1>
+    		<div v-if='contact'>
+    			<div class="info">
+					<ul>
+	    				<li>
+	    					<span>姓名</span><em v-text='contact.name'></em>
+	    				</li>
+	    				<li>
+	    					<span>邮箱</span><em v-text='contact.email'></em>
+	    				</li>
+	    				<li>
+	    					<span>手机号码</span><em v-text='contact.phone'></em>
+	    				</li>
+	    			</ul>
+	    			<dl class="address">
+		    			<dt>
+		    				<span>地址</span><em v-text='contact.pca'></em>
+		    			</dt>
+		    			<dd>详细地址</dd>
+		    			<dd v-text='contact.address'>
+		    				
+		    			</dd>
+		    		</dl>
+		    	</div>
     		</div>
-    		<div class="address">
-    			<group  gutter='0'>
-			      	<div @click='chooseaAddress=true;'><cell title="地址" :value="chooseAddressText" ></cell></div>
-			      	<cell title="详情地址"></cell>
-			      	<x-textarea  placeholder='请输入联系人详细地址'></x-textarea>
-			    </group>
-    		</div>
-		    <div class="remark">
-		    	<group  gutter='0'>
-			      	<cell title="备注信息"></cell>
-			      	<x-textarea placeholder='请填写备注内容'></x-textarea>
-			    </group>
-		    </div>
-		    <div class="agreement">
-		    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="javascript:viod(0)">《用户条款及协议》</a>
-		    </div>
+    		<div v-else class="addContact">
+	    		<router-link to='/editContact'>
+	          		<x-button type="default" style='width:120px;'>添加联系人</x-button>
+	          	</router-link>
+	    	</div>
     	</div>
+    	<div class="remark">
+	    	<group  gutter='0'>
+		      	<cell title="备注信息"></cell>
+		      	<x-textarea placeholder='请填写备注内容' v-model='note'></x-textarea>
+		    </group>
+		     <div class="agreement">
+		    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="#/protocol">《用户条款及协议》</a>
+		    </div>
+	    </div>
     </div>
-    <!-- 选择地址 -->
-    <div v-transfer-dom>
-  		<popup v-model="chooseaAddress" @on-hide="" @on-show="">
-  			<dl class="opera">
-  				<dt @click='chooseaAddress=false'>取消</dt>
-  				<dd @click='ensure'>确定</dd>
-  			</dl>
-  			<picker :data='year7' :fixed-columns="3" :columns=3 v-model='year8Value' @on-change='change'></picker>
-  		</popup>
-	</div>
 	<!-- 支付 -->
 	 <div v-transfer-dom class="payfor">
   		<popup v-model="payfor" @on-hide="" @on-show="">
@@ -74,24 +82,40 @@
   			<dl class="payType">
   				<dt>请选择付款方式</dt>
   				<dd>
-  					<i class="wx"></i>微信支付  <em @click='payType=!payType' class="changeType"><check-icon :value='payType'></check-icon></em>
+  					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
   				</dd>
   				<dd>
-  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em @click='payType=!payType' class="changeType"><check-icon :value='!payType'></check-icon></em>
+  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
   				</dd>
   			</dl>
+  			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
+				<li class="list">
+					<div class="chooseBox">
+    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    				</div>
+    				<div class="listBox">
+    					<dl>
+							<dt>{{item.discount-0|currency}}</dt>
+							<dd>
+								<div class='couponsType'>优惠抵扣</div>
+								<div class="couponsDetail">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+							</dd>
+						</dl>
+    				</div>
+				</li>
+			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{1001.01|currency}}</em>
+  					总价：<em>{{sum|currency}}</em>
   				</span>
   			</div>
-  			<div class="submitPayfor">
+  			<div class="submitPayfor" @click='submitPayfor'>
 		     	确认支付
 		    </div>
   		</popup>
 	</div>
     <div class="submit">
-     	<x-button type='default' :disabled='!agreement' :class='{"disabled":!agreement}' @click.native='payfor=true'>提交</x-button>
+     	<x-button type='default' :disabled='!(agreement&&contact)' :class='{"disabled":!(agreement&&contact)}' @click.native='ensure'>提交</x-button>
     </div>
   </div>
 </template>
@@ -108,6 +132,7 @@ import Popup from 'vux/src/components/popup'
 import Picker from 'vux/src/components/picker'
 import CheckIcon from 'vux/src/components/check-icon'
 import XButton from 'vux/src/components/x-button'   
+import {myCoupon,getContact,generate,pay,getOpenid} from '../../config/api'
 export default {
 	directives: {
 	    TransferDom
@@ -115,85 +140,168 @@ export default {
   	data () {
 	    return {
 	    	chooseAddressText: '请选择地址',
-	    	chooseaAddress: false,
 	    	agreement: false,
-	    	payfor: true,
+	    	payfor: false,
 	    	payType: true,
-	    	year7: [{
-		        name: '中国',
-		        value: 'china',
-		        parent: 0
-		      }, {
-		        name: '美国',
-		        value: 'USA',
-		        parent: 0
-		      }, {
-		        name: '广东',
-		        value: 'china001',
-		        parent: 'china'
-		      }, {
-		        name: '广西',
-		        value: 'china002',
-		        parent: 'china'
-		      }, {
-		        name: '美国001',
-		        value: 'usa001',
-		        parent: 'USA'
-		      }, {
-		        name: '美国002',
-		        value: 'usa002',
-		        parent: 'USA'
-		      }, {
-		        name: '广州',
-		        value: 'gz',
-		        parent: 'china001'
-		      }, {
-		        name: '深圳',
-		        value: 'sz',
-		        parent: 'china001'
-		      }, {
-		        name: '广西001',
-		        value: 'gz',
-		        parent: 'china002'
-		      }, {
-		        name: '广西002',
-		        value: 'sz',
-		        parent: 'china002'
-		      }, {
-		        name: '美国001_001',
-		        value: '0003',
-		        parent: 'usa001'
-		      }, {
-		        name: '美国001_002',
-		        value: '0004',
-		        parent: 'usa001'
-		      }, {
-		        name: '美国002_001',
-		        value: '0005',
-		        parent: 'usa002'
-		      }, {
-		        name: '美国002_002',
-		        value: '0006',
-		        parent: 'usa002'
-		      }],
-	    	year8Value: []
+	    	contact: null,
+	    	note: '',
+	    	order_sn:'',
+	    	sum: '',
+	    	code:'',
+	    	passenger:[],
+	    	coupons: [],
+	    	couponsIndex: ""
 	    }
   	},
   	methods: {
-  		ensure(){
-
+  		getContactFn(){
+  			let params = {
+  				access_token: this.userInfo.access_token
+  			}
+  			getContact(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.contact = content;	
+      			}
+  			})
   		},
-  		change(){
-
-  		}
+  		ensure(){
+  			if (this.order_sn) {
+  				this.payfor= true;
+  				return false;
+  			}
+  			let preBaseInfo = JSON.parse(sessionStorage.preBaseInfo);
+  			let special = JSON.parse(sessionStorage.special);
+  			let passenger = this.passenger;
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				adult_count: preBaseInfo.adult_count,
+  				child_count: preBaseInfo.child_count,
+  				room_count: preBaseInfo.room_count,
+  				date_price_id: preBaseInfo.date_price_id,
+  				start_id: preBaseInfo.start_id,
+  				customer_contact_id: this.contact.customer_contact_id,
+  				note: this.note
+  			}
+  			if (passenger.length) {
+  				let passengerArr = [];
+	  			for(let i = 0 ; i < passenger.length;i++){
+	  				passengerArr[i] = passenger.customer_passenger_id;
+	  			}
+	  			params.customer_passenger = JSON.stringify(passengerArr);
+	  		}else{
+	  			this.$vux.alert.show({
+				  	title: '',
+				  	content: '请选择旅客',
+				});
+	  			return false;
+	  		}
+  			if (special.length) {
+  				params.special = JSON.stringify(special);
+  			}
+  			generate(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.payfor=true;
+      				this.order_sn = content.order_sn;
+      				this.sum = content.sum;
+      			}
+  			})
+  		},
+  		submitPayfor(){
+  			let openid = this.getCookie('openid');
+  			let coupons;
+  			if (this.couponsIndex!=="") {
+  				let couponsObj = this.coupons[this.couponsIndex];
+  				coupons= {
+  					coupon_id: couponsObj.coupon_id,
+  					discount: couponsObj.discount-0+""
+  				}
+  				let arr = [coupons];
+  				coupons =  JSON.stringify(arr);
+  			}
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				order_sn: this.order_sn,
+  				sum: this.sum,
+  				openid: openid,
+  				coupons: coupons?coupons:""
+  			}
+  			pay(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				let _this=  this;
+      				WeixinJSBridge.invoke('getBrandWCPayRequest',
+                    {
+                        "appId":content.appId,
+						"nonceStr":content.nonceStr,
+						"package":content.package,
+						"signType":content.signType,
+						"timeStamp":content.timeStamp,
+						"paySign":content.paySign
+					},
+                   	function(res){
+                        // WeixinJSBridge.log(res.err_msg);
+                        // alert(res.err_code+res.err_desc+res.err_msg);
+                        let  err_msg = res.err_msg;
+                        if (err_msg.indexOf("ok")>-1) {
+                            _this.$router.push('./orderList');
+                        }else{
+                        	_this.$router.back(-1)
+                        }
+                    }
+                );
+			 		this.payfor = false;	
+      			}
+  			})
+  		},
   	},
-   components: {
-    XHeader,Flexbox,FlexboxItem,XButton,Group,XInput ,XTextarea ,Cell,Popup,Picker,CheckIcon,XButton
-  },
+	components: {
+	    XHeader,Flexbox,FlexboxItem,XButton,Group,XInput ,XTextarea ,Cell,Popup,Picker,CheckIcon,XButton
+	},
+	created(){
+		if (sessionStorage.passenger) {
+			this.passenger = JSON.parse(sessionStorage.passenger);
+		}
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
+	},
+  	mounted(){
+  		this.$nextTick(()=>{
+  			if (!this.userInfo.access_token) {
+  				let _this = this;
+				this.$vux.alert.show({
+				  	title: '',
+				  	content: '请先登录',
+				 	onShow () {
+				  	},
+				 	onHide () {
+				    	_this.$router.replace('./login');
+				  	}
+				})
+  			}else{
+  				this.getContactFn();
+  			}
+  			var href = location.href; 
+  			if(href.indexOf('code')>-1){
+  				this.code = href.split('?')[1].split('&')[0].split('=')[1];
+  				this.getOpenid(); 
+  			}
+  		})
+  	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
+@import '../../style/payFor.scss';
 .weui-cell{
 	padding: 14px 15px !important;
 	font-size: 15px;
@@ -216,10 +324,13 @@ export default {
 	h1{
 		@include sc(16px,#000);
 	}
-	.traveler{
+	.traveler,.newAdd,.addContact{
 		width: 100%;
 		padding: 15px;
 		background-color: #fff;
+		a{
+			color: $primary_color;
+		}
 		.vux-flexbox.vux-flex-row{
 			width: 80%;
 			margin: 16px auto;
@@ -259,10 +370,41 @@ export default {
 	.contact{
 		line-height: 49px;
 		margin-top: 16px;
-		.info,.address,.remark{
+		h1{
+			@include border-bottom-1px($border_color);
 			background-color: #fff;
 		}
-		.address,.remark{
+		.address{
+			dt,dd{
+				padding: 0px 15px;
+				overflow: hidden;
+			}
+		}
+		.info ul,.address{
+			background-color: #fff;
+			li{
+				@include border-bottom-1px($border_color);
+			}
+			li,dt,dd{
+				padding: 0px 15px;
+				overflow: hidden;
+			}
+			dt{
+				@include border-bottom-1px($border_color);
+			}
+			dd{
+				@include sc(15px,$text_color);
+			}
+			span{
+				float: left;
+				@include sc(15px,$text_color);
+			}
+			em{
+				float: right;
+				@include sc(14px,$title_color);
+			}
+		}
+		.address{
 			margin-top: 16px;
 		}
 		h1{
@@ -272,8 +414,11 @@ export default {
 			@include sc(15px,#000);
 		}
 	}
+	.remark{
+		margin-top: 16px;
+	}
 	.agreement{
-		padding-left: 15px;
+		padding: 15px;
 		@include sc(13px,$hint_color);
 		i{
 			display: inline-block;
@@ -289,84 +434,6 @@ export default {
 		a{
 			color:$primary_color;
 		}
-	}
-}
-.payfor{
-	background-color: #fff;
-	.title{
-		width: 100%;
-		height: 49px;
-		line-height:49px;
-		text-align: center;
-		overflow: hidden;
-		@include sc(18px,$title_color);
-		@include border-bottom-1px($border_color);
-		i{
-			display: inline-block;
-			height: 42px;
-			float: right;
-			margin-top: 4px;
-		}
-		.vux-x-icon{
-			fill: $hint_color;
-		}
-	}
-	.payType{
-		overflow: hidden;
-		line-height: 42px;
-		color: $title_color;
-		padding: 0px 15px;
-		dt,dd{
-			height: 42px;
-			@include border-bottom-1px($border_color);
-		}
-		dt{
-			font-size: 15px;
-		}
-		dd{  
-			font-size: 16px;
-			overflow: hidden;
-			em{
-				color: $hint_color;
-			}
-			.changeType{
-				float: right;
-			}
-		}
-		i{
-			display: inline-block;
-			width: 20px;
-			height: 20px;
-			vertical-align: middle;
-			margin-right: 10px;
-		}
-		.wx{
-			@include bg_image('../../images/predatemine/wx');
-		}
-		.installment{
-			@include bg_image('../../images/predatemine/wallet');
-		}
-	}
-	.totalPrice{
-		overflow: hidden;
-		line-height: 60px;
-		height: 60px;
-		padding-right: 15px;
-		span{
-			float: right;
-			@include sc(16px,#000);
-		}
-		em{
-			color: $price_color;
-		}
-	}
-	.submitPayfor{
-		width: 100%;
-		height: 49px;
-		line-height: 49px;
-		text-align: center;
-		@include sc(16px,#fff);
-		background-color: $primary_color;
 	}
 }
 .opera{

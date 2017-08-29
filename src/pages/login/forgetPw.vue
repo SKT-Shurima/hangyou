@@ -25,7 +25,7 @@
 	    			<i :class="visible2?'visible':'notVisible'" @click='visible2=!visible2'></i>
 	    		</div>
 	    		<div class="agreement">
-			    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="javascript:viod(0)">《用户条款及协议》</a>
+			    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="#/protocol">《用户条款及协议》</a>
 			    </div>
 	    		<div class="subBtn">
 	    			<button :disabled='!(agreement&&phone&&passwd&&confirm_passwd&&verify)' @click='sure'>确定</button>
@@ -116,8 +116,8 @@ export default {
 	    	if (phone&&passwd&&confirm_passwd&&verify) {
 	    		let params = {
 	    			phone: this.phone,
-	    			passwd: this.passwd,
-	    			confirm_passwd:  this.confirm_passwd,
+	    			passwd: this.hex_md5(this.passwd),
+	    			confirm_passwd: this.hex_md5(this.confirm_passwd),
 	    			verify: this.verify,
 	    			type: 1
 	    		}

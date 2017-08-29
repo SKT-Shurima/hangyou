@@ -3,30 +3,28 @@
     <x-header :left-options="{backText: ''}">预定</x-header>
   	<div class="container">
   		<div class="travelInfo">
-  			<h1>酒店信息<a href="">详情</a></h1>
-  			<dl v-for='item in 2'>
+  			<h1>酒店信息<a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
+  			<dl v-for='(item,index) in hotel' :key='index'>
   				<dt class="date">
-  					{{1512121211*1000|dateStyle}}至{{1512121211*1000|dateStyle}}
+  					{{item.start_date*1000|dateStyle}}至{{item.end_date*1000|dateStyle}}
   				</dt>
-  				<dd class="name">
-  					香港铜锣湾皇悦酒店
-  				</dd>
+  				<dd class="name" v-text='item.name'></dd>
   			</dl>
   			<h1 style="margin-top:10px;">航班信息</h1>
-  			<dl v-for='item in 3'>
+  			<dl v-for='(item,index) in flight' :key='index'>
   				<dt class="date">
-  					{{1512121211*1000|dateStyle}}
+  					{{item.start_date*1000|dateStyle}}
   				</dt>
   				<dd class="site">
-  					杭州（07：25）<i class="airIcon"></i>香港（10:52）<em>+1</em>
+  					{{item.start_station}}（{{item.start_time}}）<i class="airIcon"></i>{{item.end_station}}（{{item.end_time}}）<em v-if='item.is_return-0'>+1</em>
   				</dd>
   			</dl>
   		</div>
   		<div class="dateInfo">
   			<div class="title">
-  				<span class="pre"><x-icon type="ios-arrow-left" size="14"></x-icon>7月</span>
-  				<strong>2017年8月</strong>
-  				<span class="next">9月<x-icon type="ios-arrow-right" size="14"></x-icon></span>
+  				<span class="pre" @click='month--;'><x-icon type="ios-arrow-left" size="14"></x-icon>{{preMonth}}月</span>
+  				<strong>{{year}}年{{month}}月</strong>
+  				<span class="next" @click='month++;'>{{nextMonth}}月<x-icon type="ios-arrow-right" size="14"></x-icon></span>
   			</div>
   			<table cellpadding="0" cellspacing="0" class="dateTable">
   				 <thead>
@@ -43,9 +41,9 @@
 		        <tbody>
 		         	<tr v-for='week in dateList'>
 		         		<td v-for='item in week' :class="{'noticket':item.ticket==='0'}">
-		         			<dl :class='{"active":dateIndex == item.date}' @click='dateIndex=item.date'>
+		         			<dl :class='{"active":day === item.date}' @click='chooseDate(item)'>
 		         				<dt class="date" v-text='item.date'></dt>
-		         				<dd class="price">{{item.adult_price|currency}}</dd>
+		         				<dd class="price" v-show='item.adult_price-0'>{{item.adult_price-0|currency}}</dd>
 		         				<dd class="ticket">{{item.ticket==='0'?'已售罄':item.ticket===""?"":`余${item.ticket}`}}</dd>
 		         			</dl>
 		         		</td>
@@ -57,25 +55,25 @@
   			<h1>选择数量</h1>
   			<ul>
   				<li>
-  					<span>成人</span>&nbsp;&nbsp;<em>{{2000|currency}}</em>/人
-  					<v-number :value='adult_num' @onchange='changeAdultNum'></v-number>
+  					<span>成人</span>&nbsp;&nbsp;<em v-show='priceInfo.adult_price-0'>{{priceInfo.adult_price|currency}}</em>/人
+  					<v-number :value='adult_count' @onchange='changeAdultNum'></v-number>
 				</li>
   				<li>
-  					<span>儿童</span>&nbsp;&nbsp;<em>{{1899|currency}}</em>/人&nbsp;&nbsp;不占床位
-  					<v-number ></v-number>
+  					<span>儿童</span>&nbsp;&nbsp;<em v-show='priceInfo.child_price-0'>{{priceInfo.child_price|currency}}</em>/人&nbsp;&nbsp;不占床位
+  					<v-number @onchange='changeChildNum' :value='child_count'></v-number>
   				</li>
   				<li>
-  					<span>房间</span>&nbsp;&nbsp;单间差<em>{{1000|currency}}</em>
-  					<v-number ></v-number>
+  					<span>房间</span>&nbsp;&nbsp;单间差<em v-show='priceInfo.difference-0'>{{priceInfo.difference|currency}}</em>
+  					<v-number :value='room_count' @onchange='changeRoomNum'></v-number>
   				</li>
   			</ul>
   		</div>
   	</div>
     <dl class="submit">
     	<dt>
-    		总价：<span> {{77751|currency}}</span>
+    		总价：<span> {{totalprice|currency}}</span>
     	</dt>
-    	<dd>
+    	<dd @click='chooseSpecial'>
     		下一步
     	</dd>
     </dl>
@@ -87,20 +85,84 @@ import XHeader from 'vux/src/components/x-header'
 import XNumber from 'vux/src/components/x-number'
 import Group from 'vux/src/components/group'
 import VNumber from '../../comment/v-number'
+import {reserve} from '../../config/api' 
 export default {
   	data () {
 	    return {
-	    	month: new Date().getMonth()+1,
-	    	year: new Date().getFullYear(),
+	    	month: "",
+	    	year: "",
+	    	day: "",
+	    	preMonth: "",
+	    	nextMonth: "",
+	    	userInfo: "",
 	    	dateList: [],
-	    	dateIndex: "0",
-	    	adult_num: 0,
+	    	adult_count: 0,
+	    	child_count: 0,
+	    	room_count: 0,
+	    	reqParams: {},
+	    	date_price: [],
+	    	date_price_id: '',
+	    	hotel: [],
+	    	flight: [],
+	    	priceInfo: {
+	    		date:'',
+	    		adult_price:'',
+	    		child_price:'',
+	    		difference:'',
+	    		ticket: ""
+	    	},
+	    	totalprice: 0,
+	    	isFirst: true
 	    }
   	},
-  		components: {
+  	components: {
     	XHeader,XNumber,Group,VNumber
   	},
+  	watch: {
+  		month(newVal,oldVal){
+  			if (newVal===13) {
+  				this.year++;
+  				this.month = 1 ;
+  				return false;
+  			}
+  			if (newVal===0) {
+  				this.year--;
+  				this.month = 12 ;
+  				return false;
+  			}
+  			this.preMonth = newVal === 1 ? 12 : newVal-1;
+  			this.nextMonth = newVal ===12 ? 1: newVal+1;
+  			if (!this.isFirst) {
+  				this.initDate();
+  			}
+  			if (newVal) {
+  				this.isFirst = false;
+  			}
+  			
+  		}
+  	},
   	methods: {
+  		checkDetail(){
+  			let start_id = this.reqParams.start_id ;
+  			let date =  parseInt(new Date(this.year,this.month-1,this.day).getTime()/1000);
+  			this.$router.push(`/hotelFlightDetail?start_id=${start_id}&date=${date}`);
+  		},
+  		getInfo(){
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				start_id: this.reqParams.start_id
+  			}
+  			reserve(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.date_price = content.date_price ;
+      				this.initDate();
+      				this.initHotelFlight(content.hotel,content.flight);
+      			}
+  			})
+  		},
   		initDate(){
   			let year = this.year,month = this.month ;
   			let firstDay = new Date(year,month-1).getDay();
@@ -115,22 +177,51 @@ export default {
 			  	arr.push(emptyObj);
   			}
   			let date = new Date(year,month,0).getDate();
-  			for(let j = 0 ; j< date ; j++){
-  				let obj = {
-  					date: j+1,
-					adult_price: j*200,
-					ticket: j%3+""
-			  	}
+  			let priceArr = this.date_price;
+  			let priceIndex = 0 ;
+  			for(let j = 1 ; j<= date ; j++){
+  				let date = parseInt(new Date(this.year,this.month-1,j).getTime()/1000);
+  				let obj ;
+  				let priceDate = 0;
+  				if (priceArr[priceIndex]) {
+  					priceDate = priceArr[priceIndex].date-0
+  				};
+  				if (date===priceDate) {
+  					obj = {
+	  					date: j,
+						adult_price: priceArr[priceIndex].adult_price,
+						child_price: priceArr[priceIndex].child_price,
+						difference: priceArr[priceIndex].difference,
+						ticket: priceArr[priceIndex].ticket,
+						date_price_id: priceArr[priceIndex].date_price_id
+				  	}
+				  	priceIndex++;
+  				}else{
+  					obj = {
+	  					date: j,
+						adult_price: '',
+						child_price: "",
+						difference: "",
+						ticket: '',
+						date_price_id:''
+				  	}
+  				}
+  				if (j===this.day) {
+  					this.priceInfo = obj;
+  					this.date_price_id = obj.date_price_id;
+  				}
 			  	arr.push(obj);
   			}
   			let lastDay = new Date(year,month).getDay();
-  			for (let k = lastDay; k < 7; k++) {
-  				let emptyObj = {
-  					date: '',
-					adult_price: '',
-					ticket: ''
-			  	}
-			  	arr.push(emptyObj);
+  			if (lastDay) {
+  				for (let k = lastDay; k < 7; k++) {
+	  				let emptyObj = {
+	  					date: '',
+						adult_price: '',
+						ticket: ''
+				  	}
+				  	arr.push(emptyObj);
+	  			}
   			}
   			// 分割
   			let dateArr = [];
@@ -145,13 +236,133 @@ export default {
   			}
   			this.dateList =  dateArr ;
   		},
+  		initHotelFlight(hotel,flight){
+  			var init_date =  parseInt(new Date(this.year,this.month-1,this.day).getTime()/1000);
+  			hotel.sort(compare('sort'));
+			flight.sort(compare('sort'));
+			var extra = new Array();
+			hotel.forEach(function(value,index,array){
+				extra[index] = value['stay_day'];
+			});
+			//获取飞机到达时间
+			var arrival_day = 0;
+			flight.forEach(function(value,index,array){
+				if(value['is_return'] == 0){
+					arrival_day = value['end_extra'];
+				}
+				flight[index]['start_date'] = init_date+value['start_extra']*86400;
+			});
+			//酒店开始入住时间
+			var hotel_init_date = init_date+86400*arrival_day;
+			for(var i = 0;i<hotel.length;i++){
+				var k = i;
+				var date_start = hotel_init_date;
+				var date_end = hotel_init_date;
+		
+				while(k >= 0){
+					if(k-1 >= 0){
+						date_start += 86400*hotel[k-1]['stay_day'];
+					}
+					date_end += 86400*hotel[k]['stay_day'];
+					k--;
+				}
+				hotel[i]['start_date'] = date_start;
+				hotel[i]['end_date'] = date_end;
+			}
+			function compare(property){
+			    return function(a,b){
+			        var value1 = a[property];
+			        var value2 = b[property];
+			        return value1 - value2;
+			    }
+			};
+			this.hotel = hotel;
+			this.flight = flight;
+			this.$vux.loading.hide();
+		},
+		chooseDate(item){
+			this.day = item.date;
+			this.date_price_id = item.date_price_id;
+			this.getInfo();
+		},
   		changeAdultNum(val){
-  			this.adult_num = val;
+  			this.adult_count = val;
+  			this.countPrice();
+  		},
+  		changeChildNum(val){
+  			this.child_count = val;
+  			this.countPrice();
+  		},
+  		changeRoomNum(val){
+  			this.room_count = val;
+  			this.countPrice();
+  		},
+  		chooseSpecial(){
+  			let date_price_id =  this.date_price_id.trim();
+  			let count = this.adult_count-0;
+  			if (date_price_id!==""&&count) {
+  				let len = this.flight.length-1;
+  				let preBaseInfo = {
+  					adult_count: this.adult_count,
+  					child_count: this.child_count,
+  					room_count: this.room_count,
+  					start_id: this.reqParams.start_id,
+  					date_price_id: this.date_price_id,
+  					totalprice: this.totalprice,
+  					start_time: this.flight[0].start_date + this.flight[0].end_extra*86400,
+  					end_time: this.flight[len].start_date
+  				}
+  				sessionStorage.preBaseInfo = JSON.stringify(preBaseInfo);
+  				this.$router.push(`./chooseSpecial?start_id=${this.reqParams.start_id}`);
+  			}else{
+  				if (!date_price_id) {
+  					this.$vux.alert.show({
+					  	title: '',
+					  	content: '该日期不可选',
+					})
+  				}else{
+  					this.$vux.alert.show({
+					  	title: '',
+					  	content: '请完善信息',
+					})
+  				}
+  			}
+  		},
+  		countPrice(){
+  			this.totalprice = this.priceInfo.adult_price*this.adult_count+this.priceInfo.child_price*this.child_count+this.priceInfo.difference*this.room_count;
   		}
 	},
+	created(){
+		sessionStorage.preBaseInfo = null;
+  		this.reqParams = this.getHashReq();
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
+  	},
   	mounted(){
   		this.$nextTick(()=>{
-  			this.initDate();
+  			if (!this.userInfo.access_token) {
+  				let _this = this;
+				this.$vux.alert.show({
+				  	title: '',
+				  	content: '请先登录',
+				 	onShow () {
+				  	},
+				 	onHide () {
+				    	_this.$router.replace('./login');
+				  	}
+				})
+  			}else{
+  				sessionStorage.preBaseInfo = null;
+	  			this.month =  new Date().getMonth()+1;
+	  			this.year = new Date().getFullYear();
+	  			this.day = new Date().getDate();
+	  			this.getInfo();
+	  			this.$vux.loading.show({
+					text: 'Loading'
+				})
+  			}
   		})
   	}
 }
@@ -238,6 +449,7 @@ export default {
 					text-align: center;
 				}
 				td{
+					width: 14.28%;
 					padding: 10px 0px;
 				}
 				.dateHeader{
@@ -264,6 +476,7 @@ export default {
 				dl{
 					@include border-1px(transparent);
 					border-radius: 5px;	
+					min-height: 45px;
 				}
 				.active{
 					@include border-1px($primary_color);

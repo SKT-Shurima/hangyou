@@ -28,21 +28,24 @@
 	     	</div>
 	    </div>
     </div>
-    <div class="submit">
+    <div class="submit" @click='predatemine'>
     	预定
     </div>
   </div>
 </template>
-
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
 import {info} from '../../config/api'
 export default {
   	data () {
 	    return {
-	    	start_id: 1,
-	    	detail: null
+	    	detail: null,
+	    	reqParams: {},
+	    	userInfo: ''
 	    }
+  	},
+	components: {
+    	XHeader
   	},
   	methods: {
   		// 转义
@@ -52,7 +55,7 @@ export default {
 		},
   		getInfo(){
   			let params = {
-  				start_id: this.start_id
+  				start_id: this.reqParams.start_id
   			}
   			info(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -69,11 +72,34 @@ export default {
       				}
       			}
   			})
+  		},
+  		predatemine(){
+  			let userInfo = this.userInfo;
+  			if (userInfo) {
+  				this.$router.push(`./predatemine?start_id=${this.reqParams.start_id}`);
+  			}else{
+  				let _this = this;
+  				this.$vux.confirm.show({
+	  				title:"",
+					content: '请先登录',
+					onCancel () {
+					    
+					},
+					onConfirm () {
+						_this.$router.push('./login');
+					}
+				})
+  			}
+  			
   		}
 	},
-   	components: {
-    	XHeader
-  	},
+  	created(){
+  		this.reqParams = this.getHashReq();
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
+  	},	
   	mounted(){
   		this.$nextTick(()=>{
   			this.getInfo();

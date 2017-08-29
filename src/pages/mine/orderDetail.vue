@@ -1,64 +1,68 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{backText: ''}">选择特定项目</x-header>
+    <x-header :left-options="{backText: ''}">订单详情</x-header>
     <div class="container">
     	<dl class="orderDetail">
     		<dt>
-      			<span>Loading...</span>
-	  			<x-img :src="src" :webp-src="`${src}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>	
+    			<img :src="order.images">
       		</dt>
 			<dd>
-      			<div class="name">
-      				香港5日自由行香港5日自由行香港5日自由行香港5日自由行香港5日自由行
-      			</div>
-      			<div class="detail">
-      				欢庆香港回归20周年，精选热门酒店欢庆香港回归20周年，精选热门酒店欢庆香港回归20周年，精选热门酒店
-      			</div>
+      			<div class="name" v-text='order.name'></div>
+      			<div class="detail" v-text='order.explain'></div>
       			<div class="priceBox">
-      				<em class="price">{{2099|currency}}</em>
-      				<span class="notice">已付款，待确认</span>
+      				<em class="price">{{order.order_amount-0|currency}}</em>
+      				<span class="notice" v-if='order.order_state==="1"'>待付款</span>
+      				<span class="notice" v-if='order.order_state==="2"'>待确认</span>
+      				<span class="notice" v-if='order.order_state==="3"'>已确认</span>
+      				<span class="notice" v-if='order.order_state==="4"'>确认失败</span>
+      				<span class="notice" v-if='order.order_state==="5"'>正在进行</span>
+      				<span class="notice" v-if='order.order_state==="6"'>已完成</span>
+      				<span class="notice" v-if='order.order_state==="7"'>退款中</span>
+      				<span class="notice" v-if='order.order_state==="8"'>成功退款<em>{{order.order_amount-0|currency}}</em></span>
+      				<span class="notice" v-if='order.order_state==="9"'>已删除</span>
+      				<span class="notice" v-if='order.order_state==="10"'>已取消</span>
+      				<span class="notice" v-if='order.order_state==="11"'>已过期</span>
+					<span class="notice" v-if='order.order_state==="12"'>退款失败</span>
+      				<span class="notice" v-if='order.order_state==="13"'>审核已退款</span>
       			</div>
       		</dd>
     	</dl>
     	<div class="travelInfo">
-  			<h1>酒店信息<em>（已确认）</em><a href="">详情</a></h1>
-  			<dl v-for='item in 2'>
+  			<h1>酒店信息<em :class='{"primary":order.hotel_confirm==="0"}'>{{order.hotel_confirm==='1'?"（已确认）":"（未确认）"}}</em><a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
+  			<dl v-for='(item,index) in hotel' :key='index'>
   				<dt class="date">
-  					{{1512121211*1000|dateStyle}}至{{1512121211*1000|dateStyle}}
+  					{{item.start_date*1000|dateStyle}}至{{item.end_date*1000|dateStyle}}
   				</dt>
-  				<dd class="name">
-  					香港铜锣湾皇悦酒店
-  				</dd>
+  				<dd class="name" v-text='item.name'></dd>
   			</dl>
-  			<h1 style="margin-top:10px;">航班信息<em :class='{"primary":true}'>（未确认）</em></h1>
-  			<dl v-for='item in 3'>
+  			<h1 style="margin-top:10px;">航班信息<em :class='{"primary":order.flight_confirm==="0"}'>{{order.flight_confirm==='1'?"（已确认）":"（未确认）"}}</em></h1>
+  			<dl v-for='(item,index) in flight' :key='index'>
   				<dt class="date">
-  					{{1512121211*1000|dateStyle}}
+  					{{item.start_date*1000|dateStyle}}
   				</dt>
   				<dd class="site">
-  					杭州（07：25）<i class="airIcon"></i>香港（10:52）<em>+1</em>
+  					{{item.start_station}}（{{item.start_time}}）<i class="airIcon"></i>{{item.end_station}}（{{item.end_time}}）<em v-if='item.end_extra-0'>+1</em>
   				</dd>
   			</dl>
   		</div>
   		<div class="special">
   			<h1 class="title">特色项目</h1>
   			<ul>
-				<li v-for='item in 2'>
+				<li v-for='(item,index) in special' :key='index'>
 					<dl>
 						<dt>
-							<span>Loading...</span>
-		  					<x-img :src="src" :webp-src="`${src}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>
+							<img :src="item.images">
 						</dt>
 						<dd>
-							<div class="name">项目介绍</div>
+							<div class="name" v-text='item.name'></div>
 							<div class="chooseDate">
-								使用日期：{{1512121211*1000|dateStyle}}
+								使用日期：{{item.use_date*1000|dateStyle}}
 							</div>
 							<div class="priceInfo">
 								<div class="price">
-									<em>{{399|currency}}</em>/人	
+									<em>{{item.price|currency}}</em>/人	
 								</div>
-								<div class="chooseNum">份数：<i>12</i></div>
+								<div class="chooseNum">份数：<i v-text='item.number'></i></div>
 							</div>
 						</dd>
 					</dl>
@@ -67,64 +71,104 @@
   		</div>
   		<div class="traveler">
   			<h1 class="title">旅客信息</h1>
-  			<dl class="infoDetail" v-for='item in 2'>
-    			<dt class="name">圆周率</dt>
+  			<dl class="infoDetail" v-for='(item,index) in passenger' :key='index'>
+    			<dt class="name" v-text='item.name'></dt>
     			<dd class="spell">
-    				<strong>YUAN/ZHOULV</strong>
+    				<span>{{item.lname}}/{{item.surname}}</span>
     				<x-icon type="ios-arrow-right" size="18"></x-icon>
     			</dd>
     			<dd class="num">
-    				<span>护照编号：</span><em>10086</em>
+    				<span>护照编号：</span><em v-text='item.card'></em>
     			</dd>
     		</dl>
   		</div>
   		<div class="contact">
   			<h1 class="title">联系人信息</h1>
-  			<dl class="infoDetail" v-for='item in 2'>
-    			<dt class="name">圆周率</dt>
+  			<dl class="infoDetail">
+    			<dt class="name"><em v-text='order.contact_name'></em><span v-text='order.phone'></span></dt>
     			<dd class="spell">
-    				<strong>12306</strong>
+    				<span v-text='order.email'></span>
     			</dd>
-    			<dd class="num">
-    				浙江省杭州市滨江区华盛达广场1918圆周率
-    			</dd>
+    			<dd class="num" v-text='order.address'></dd>
     		</dl>
   		</div>
   		<div class="orderInfo">
   			<h1 class="title">订单信息</h1>
   			<div class="order">
-  				<span>订单编号：</span>12306
+  				<span>订单编号：</span>{{order.order_sn}}
   			</div>
   			<div class="order">
-  				<span>订单编号：</span>12306
+  				<span>下单时间：</span>{{order.date*1000|dateStyle}}&nbsp;{{order.date*1000|timeStyle}}
   			</div>
   			<p>
-  				<span>备注信息：</span>不要说太多不要说太多不要说太多不要说太多不要说太多不要说太多
+  				<span>备注信息：</span>{{order.note}}
   			</p>
   		</div>
     </div>
-     <div v-transfer-dom class="confirm">
-	    <confirm v-model="confirmBol"
-	    @on-cancel="onCancel"
-	    @on-confirm="onConfirm">
-	        <p>是否申请退款?</p>
-	    </confirm>
+	<div class="submit">
+		<dl class="nopay" v-if='order.order_state==="1"'>
+			<dt @click='cancelOrderFn(order.id)'>取消订单</dt>
+			<dd @click='payfor=true'>立即支付</dd>
+		</dl>
+		<div v-if='order.order_state==="2"||order.order_state==="3"' @click='refundFn(order.id)'>
+			退款
+		</div>
+     	<div v-if='order.order_state==="7"' @click='cancelRefund(order,id)'>
+			取消退款
+		</div>
     </div>
-	 <div class="submit" @click='confirmBol=true'>
-     	退款
-    </div>
+    <div v-transfer-dom class="payfor">
+  		<popup v-model="payfor">
+  			<div class="title">
+  				付款详情 <i @click='payfor=false'><x-icon type="ios-close-empty" size="40"></x-icon></i>
+  			</div>
+  			<dl class="payType">
+  				<dt>请选择付款方式</dt>
+  				<dd>
+  					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
+  				</dd>
+  				<dd>
+  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
+  				</dd>
+  			</dl>
+			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
+				<li class="list">
+					<div class="chooseBox">
+    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    				</div>
+    				<div class="listBox">
+    					<dl>
+							<dt>{{item.discount-0|currency}}</dt>
+							<dd>
+								<div class='couponsType'>优惠抵扣</div>
+								<div class="couponsDetail">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+							</dd>
+						</dl>
+    				</div>
+				</li>
+			</ul>
+  			<div class="totalPrice">
+  				<span>
+  					总价：<em>{{order.order_amount|currency}}</em>
+  				</span>
+  			</div>
+  			<div class="submitPayfor" @click='submitPayfor'>
+		     	确认支付
+		    </div>
+  		</popup>
+	</div>
   	</div>
 </template>
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
-import XImg from 'vux/src/components/x-img'
 import VNumber from '../../comment/v-number'
 import Popup from 'vux/src/components/popup'
 import Picker from 'vux/src/components/picker'
+import CheckIcon from 'vux/src/components/check-icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
-import TransferDom from 'vux/src/directives/transfer-dom' 
-import confirm from 'vux/src/components/confirm' 
+import TransferDom from 'vux/src/directives/transfer-dom'
+import {detail,refund,cancelRefund,cancelOrder,pay} from '../../config/api'
 export default {
 	directives: {
 	    TransferDom
@@ -132,13 +176,134 @@ export default {
   	data () {
 	    return {
 	    	src: 'https://static.vux.li/demo/1.jpg',
-	    	confirmBol: false
+	    	userInfo: {},
+	    	order: "",
+	    	hotel: [],
+	    	flight: [],
+	    	passenger: [],
+	    	special: [],
+	    	payfor: false,
+	    	payType: true,
+	    	coupons: [],
+	    	couponsIndex: ""
 	    }
   	},
 	components: {
-    	XHeader,XImg,VNumber,Picker,Popup,Flexbox,FlexboxItem,confirm
+    	XHeader,VNumber,Picker,Popup,Flexbox,FlexboxItem,CheckIcon
   	},
   	methods: {
+  		checkDetail(){
+  			let start_id = this.order.start_id ;
+  			let date =  this.reqParams.date;
+  			this.$router.push(`/hotelFlightDetail?start_id=${start_id}&date=${date}`);
+  		},
+  		initHotelFlight(hotel,flight){
+  			var init_date =  this.reqParams.date-0;
+  			hotel.sort(compare('sort'));
+			flight.sort(compare('sort'));
+			var extra = new Array();
+			hotel.forEach(function(value,index,array){
+				extra[index] = value['stay_day'];
+			});
+			//获取飞机到达时间
+			var arrival_day = 0;
+			flight.forEach(function(value,index,array){
+				if(value['is_return'] == 0){
+					arrival_day = value['end_extra'];
+				}
+				flight[index]['start_date'] = init_date+value['start_extra']*86400;
+			});
+			//酒店开始入住时间
+			var hotel_init_date = init_date+86400*arrival_day;
+			for(var i = 0;i<hotel.length;i++){
+				var k = i;
+				var date_start = hotel_init_date;
+				var date_end = hotel_init_date;
+		
+				while(k >= 0){
+					if(k-1 >= 0){
+						date_start += 86400*hotel[k-1]['stay_day'];
+					}
+					date_end += 86400*hotel[k]['stay_day'];
+					k--;
+				}
+				hotel[i]['start_date'] = date_start;
+				hotel[i]['end_date'] = date_end;
+			}
+			function compare(property){
+			    return function(a,b){
+			        var value1 = a[property];
+			        var value2 = b[property];
+			        return value1 - value2;
+			    }
+			};
+			this.hotel = hotel;
+			this.flight = flight;
+		},
+  		getDetail(){
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				order_id: this.reqParams.order_id
+  			}
+  			detail(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.order = content.order;
+      				this.passenger = content.passenger;
+      				this.special = content.special;
+      				this.initHotelFlight(content.hotel,content.flight);
+      			}
+  			})
+  		},
+  		orderFn(fn,id,msg){
+  			let _this = this;
+  			this.$vux.confirm.show({
+  				title:"",
+				content: msg,
+				onCancel () {
+				    return false;
+				},
+				onConfirm () {
+					let params ={
+		  				access_token: _this.userInfo.access_token,
+		  				order_id: id
+		  			};
+		  			fn(params).then(res=>{
+		  				let {errcode,message} = res;
+		      			if (errcode!==0) {
+		      				_this.errcode(errcode,message);
+		      			}else{
+		      				_this.$vux.alert.show({
+							  	title: '',
+							  	content: message
+							});
+		      			}
+		  			})
+				}
+			});
+  		},
+  		refundFn(id){
+  			let state = this.order.order_state;
+  			if (state==="7") {
+  				this.$vux.alert.show({
+				  	title: '',
+				  	content: '退款正在受理'
+				});
+  			}else{
+  				let msg = '是否申请退款';
+  				this.orderFn(refund,id,msg);
+  			}
+  		},
+  		cancelRefundFn(id){
+  			let msg = '是否取消退款';
+  			this.orderFn(cancelRefund,id,msg);
+  		},
+  		cancelOrderFn(id){
+  			let msg = '是否取消订单';
+  			this.orderFn(cancelOrder,id,msg);
+  		},
   		success (src, ele) {
 		    console.log('success load', src)
 		    const span = ele.parentNode.querySelector('span')
@@ -155,22 +320,88 @@ export default {
 	    ensure(){
 	    	console.log(this.dateVal[0])
 	    },
-	    onCancel(){
-
-	    },
-	    onConfirm(){
-
-	    }
+	    submitPayfor(){
+  			let order = this.order;
+  			let openid = this.getCookie('openid');
+  			let coupons;
+  			if (this.couponsIndex!=="") {
+  				let couponsObj = this.coupons[this.couponsIndex];
+  				coupons= {
+  					coupon_id: couponsObj.coupon_id,
+  					discount: couponsObj.discount-0+""
+  				}
+  				let arr = [coupons];
+  				coupons =  JSON.stringify(arr);
+  			}
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				order_sn: order.order_sn,
+  				sum: order.order_amount,
+  				payType: "2",
+  				openid: openid,
+  				coupons: coupons?coupons:""
+  			}
+  			pay(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				let _this=  this;
+      				WeixinJSBridge.invoke('getBrandWCPayRequest',
+                    {
+                        "appId":content.appId,
+						"nonceStr":content.nonceStr,
+						"package":content.package,
+						"signType":content.signType,
+						"timeStamp":content.timeStamp,
+						"paySign":content.paySign
+					},
+                    function(res){
+                        // WeixinJSBridge.log(res.err_msg);
+                        // alert(res.err_code+res.err_desc+res.err_msg);
+                        let  err_msg = res.err_msg;
+                        if (err_msg.indexOf("ok")>-1) {
+                            _this.$router.push('./orderList');
+                        }else{
+                        	_this.$router.back(-1)
+                        }
+                    }
+                );
+			 		this.payfor = false;	
+      			}
+  			})
+  		},
 	},
+	created(){
+  		this.reqParams = this.getHashReq();	
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
+  	},
   	mounted(){
   		this.$nextTick(()=>{
-  			
+  			if (!this.userInfo.access_token) {
+  				let _this = this;
+				this.$vux.alert.show({
+				  	title: '',
+				  	content: '请先登录',
+				 	onShow () {
+				  	},
+				 	onHide () {
+				    	_this.$router.replace('./login');
+				  	}
+				})
+  			}else{
+  				this.getDetail();
+  			}
   		})
   	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
+@import '../../style/payFor.scss';
 	.container{
 		position: fixed;
 		top: 46px;
@@ -362,23 +593,15 @@ export default {
 				line-height: 27px;
 				padding: 10px 14px;
 				@include border-bottom-1px($border_color);
+				@include sc(15px,$title_color);
 				.name{
-					color: #000;
-				}
-				.spell{
-					color: $title_color;
-					.vux-x-icon{
-						float: right;
-						fill: #ccc;
-						margin-top: 2px;
-					}
-				}
-				.num{
-					span{
-						color: $hint_color;
-					}
+					overflow: hidden;
 					em{
-						color: $title_color;
+						float: left;
+					}
+					span{
+						float: right;
+						@include sc(15px,$detail_color);
 					}
 				}
 			}
@@ -418,6 +641,21 @@ export default {
 		text-align: center;
 		background-color: $primary_color;
 		@include sc(16px,#fff);
+		.nopay{
+			overflow: hidden;
+			dt,dd{
+				width: 50%;
+				text-align: center;
+			}
+			dt{
+				float: left;
+				background-color: #fff;
+				color: $primary_color;
+			}
+			dd{
+				float: right;
+			}
+		}
 	}
 </style>
 <style type="text/css">

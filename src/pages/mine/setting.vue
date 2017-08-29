@@ -3,10 +3,10 @@
     <x-header :left-options="{backText: ''}">设置</x-header>
     <div class="container">
     	<div class="aboutUs">
-    		<cell title='用户条款协议':is-link='true'></cell>
-    		<cell title='关于我们':is-link='true'></cell>
+    		<cell title='用户条款协议' link='/protocol'  :is-link='true'></cell>
+    		<cell title='关于我们'  link='/aboutUs'  :is-link='true'></cell>
     	</div>
-    	<div class="quit">	
+    	<div class="quit" @click='quit'>	
 			退出登录
     	</div>
     </div>
@@ -21,18 +21,28 @@ export default {
 	    return {
 	    }
   	},
-  	methods: {
+  	components: {
+    	XHeader,Cell
   	},
-   components: {
-    XHeader,Cell
-  },
+  	methods: {
+  		quit(){
+  			let userInfo = localStorage.userInfo;
+  			if (userInfo) {
+  				localStorage.removeItem('userInfo');
+  			}
+  			this.$router.replace('/home');
+
+  		}
+  	},
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
+.wrap{
+  height: 100vh;
+}
 .wrap,.container{
 	width: 100%;
-	height: 100%;
 	background-color: #f7f7f7;
 }
 .aboutUs{

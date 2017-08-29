@@ -11,10 +11,9 @@
 	    </scroller>
 	    <ul class="panel">
 	    	<li v-for='(item,index) in destination' :key='index'>
-	    		<dl>
+	    		<dl @click='getDes(item.destination_id)'>
 	    			<dt>
-	    				<span>Loading...</span>
-	  					<x-img :src="item.images" :webp-src="`${item.images}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>
+	    				<img :src="item.images">
 	    			</dt>
 	    			<dd>
 	    				<div class="name" v-text='item.name'></div>
@@ -34,7 +33,6 @@
 import XHeader from 'vux/src/components/x-header' 
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox' 
 import Scroller from 'vux/src/components/scroller'
-import XImg from 'vux/src/components/x-img'
 import {getCategory} from '../../config/api'
 export default {
   	data () {
@@ -45,14 +43,9 @@ export default {
 	    }
   	},
   	methods: {
-  		success (src, ele) {
-		    const span = ele.parentNode.querySelector('span')
-		    ele.parentNode.removeChild(span)
-		},
-	    error (src, ele, msg) {
-		    const span = ele.parentNode.querySelector('span')
-		    span.innerText = 'load error'
-	    },
+  		getDes(id){
+  			this.$router.push(`/getDes?destination_id=${id}`);
+  		},
 	    getcategory(){
 	    	let params ={
 	    		page: this.page
@@ -72,7 +65,7 @@ export default {
 	    }
   	},
   	components: {
-    	XHeader,Flexbox,FlexboxItem,Scroller,XImg
+    	XHeader,Flexbox,FlexboxItem,Scroller
   	},
   	mounted(){
   		this.$nextTick(()=>{

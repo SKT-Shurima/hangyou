@@ -1,64 +1,59 @@
 <template>
   <div class="wrap">
-   	<x-header :left-options="{showBack: false}">全部订单</x-header>
+   	<x-header :left-options="{backText: ''}">全部订单</x-header>
     <div class="container">
 	    <ul class="panel">
-	    	<li v-for='(item,index) in 12'>
-	    		<dl>
+	    	<li v-for='(item,index) in orderList'  :key='index'>
+	    		<dl @click='checkDetail(item)'>
 	    			<dt>
-	    				<span>Loading...</span>
-	  					<x-img :src="src" :webp-src="`${src}?type=webp`" @on-success="success" @on-error="error" class="ximg-demo" error-class="ximg-error" :offset="-100" container="#app"></x-img>
+	    				<img :src="item.images">
 	    			</dt>
 	    			<dd>
-	    				<div class="name">
-	    					杭州
-	    				</div>
-	    				<div class="detail">
-	    					杭州是个好地方杭州是个好地方杭州是个好地方
-	    				</div>
+	    				<div class="name" v-text='item.name'></div>
+	    				<div class="detail" v-text='item.explain'></div>
 	    				<div class="price">
-							{{399|currency}}
+							{{item.order_amount|currency}}
 						</div>
 	    			</dd>
 	    		</dl>
 	    		<flexbox class='date'>
-	    			<flexbox-item class='time' :span='7/15'>出发日期：{{1512125541*1000|dateStyle}}</flexbox-item>
+	    			<flexbox-item class='time' :span='7/15'>出发日期：{{item.date*1000|dateStyle}}</flexbox-item>
 	    			<flexbox-item class='notice' :span='8/15' style='margin-left:0px;'>
-	    				<span v-if='index===0'>
-	    					<button class="default_btn">取消订单</button>
-	    					<button class="primary_btn">立即支付</button>
+	    				<span v-if='item.order_state==="1"'>
+	    					<button class="default_btn" @click='cancelOrderFn(item.id)'>取消订单</button>
+	    					<button class="primary_btn" @click='payFor(item)'>立即支付</button>
 	    				</span>
-	    				<span v-if='index===1'>已取消</span>
-	    				<span v-if='index===2'>已过期</span>
-	    				<span v-if='index===3' class="primary">
-	    					已付款，待确认&nbsp;<button class="text_btn">退款</button>
+	    				<span v-if='item.order_state===2' class="primary">
+	    					已付款，待确认&nbsp;<button class="text_btn" @click='refundFn(item.id)'>退款</button>
 	    				</span>
-	    				<span v-if='index===4' class="warning">
+	    				<span v-if='item.order_state==="3"'>
+	    					已付款，已确认&nbsp;<button class="text_btn" @click='refundFn(item.id)'>退款</button>
+	    				</span>
+	    				<span v-if='item.order_state==="4"' class="warning">
 	    					审核失败，系统已为您退款
 	    				</span>
-	    				<span v-if='index===5'>
-	    					已付款，已确认&nbsp;<button class="text_btn">退款</button>
-	    				</span>
-	    				<span v-if='index===6' class="primary">
-	    					退款受理中&nbsp;<button class="default_btn">取消退款</button>
-	    				</span>
-	    				<span v-if='index===7'>
-	    					退款失败
-	    				</span>
-	    				<span v-if='index===8'>
-	    					成功退款 <em class="price">{{3066|currency}}</em>
-	    				</span>
-	    				<span v-if='index===9' class="primary ">
+	    				<span v-if='item.order_state==="5"' class="primary ">
 	    					正在进行
 	    				</span>
-	    				<span v-if='index===10'>
+	    				<span v-if='item.order_state==="6"'>
 	    					已完成
 	    				</span>
-	    				<span v-if='index===11' class="primary">
-	    					已付款，待确认
+	    				<span v-if='item.order_state==="7"' class="primary">
+	    					退款受理中&nbsp;<button class="default_btn" @click='cancelRefundFn(item.id)'>取消退款</button>
 	    				</span>
-	    				<span v-if='index===12'>	
-							已付款，已确认
+	    				<span v-if='item.order_state==="8"'>
+	    					成功退款 <em class="price">{{item.order_amount|currency}}</em>
+	    				</span>
+	    				<span v-if='item.order_state==="9"'>
+	    					已删除
+	    				</span>
+	    				<span v-if='item.order_state==="10"'>已取消</span>
+	    				<span v-if='item.order_state==="11"'>已过期</span>
+	    				<span v-if='item.order_state==="12"'>
+	    					退款失败
+	    				</span>
+	    				<span v-if='item.order_state==="13"'>
+	    					审核已退款
 	    				</span>
 	    			</flexbox-item>
 	    		</flexbox>
@@ -67,45 +62,239 @@
 	    <div class="noMore">
 			没有更多了
 		</div>
+			<!-- 支付 -->
+	 <div v-transfer-dom class="payfor">
+  		<popup v-model="payfor">
+  			<div class="title">
+  				付款详情 <i @click='payfor=false'><x-icon type="ios-close-empty" size="40"></x-icon></i>
+  			</div>
+  			<dl class="payType">
+  				<dt>请选择付款方式</dt>
+  				<dd>
+  					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
+  				</dd>
+  				<dd>
+  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
+  				</dd>
+  			</dl>
+			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
+				<li class="list">
+					<div class="chooseBox">
+    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    				</div>
+    				<div class="listBox">
+    					<dl>
+							<dt>{{item.discount-0|currency}}</dt>
+							<dd>
+								<div class='couponsType'>优惠抵扣</div>
+								<div class="couponsDetail">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+							</dd>
+						</dl>
+    				</div>
+				</li>
+			</ul>
+  			<div class="totalPrice">
+  				<span>
+  					总价：<em>{{payItem.order_amount|currency}}</em>
+  				</span>
+  			</div>
+  			<div class="submitPayfor" @click='submitPayfor'>
+		     	确认支付
+		    </div>
+  		</popup>
+	</div>
     </div>
   </div>
 </template>
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header' 
+import TransferDom from 'vux/src/directives/transfer-dom' 
+import Popup from 'vux/src/components/popup'
+import CheckIcon from 'vux/src/components/check-icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox' 
-import XImg from 'vux/src/components/x-img'
+import {myCoupon,orderList,refund,cancelRefund,cancelOrder,pay} from '../../config/api'
 export default {
+	directives: {
+	    TransferDom
+	},
   	data () {
 	    return {
-	    	src: 'https://static.vux.li/demo/1.jpg',
+	    	userInfo:'',
+	    	orderList: [],
+	    	payfor: false,
+	    	payType: true,
+	    	payItem: {},
+	    	coupons: [],
+	    	couponsIndex: ""
 	    }
+  	},
+  	components: {
+    	XHeader,Flexbox,FlexboxItem,Popup,CheckIcon
   	},
   	methods: {
-  		success (src, ele) {
-		    console.log('success load', src)
-		    const span = ele.parentNode.querySelector('span')
-		    ele.parentNode.removeChild(span)
-		},
-	    error (src, ele, msg) {
-	      	console.log('error load', msg, src)
-		    const span = ele.parentNode.querySelector('span')
-		    span.innerText = 'load error'
-	    },
-	    change (val) {
-	      console.log('val change', val)
-	    },
-	    ensure(){
-	    	console.log(this.dateVal[0])
-	    }
+  		orderFn(fn,id,msg){
+  			let _this = this;
+  			this.$vux.confirm.show({
+  				title:"",
+				content: msg,
+				onCancel () {
+				    return false;
+				},
+				onConfirm () {
+					let params ={
+		  				access_token: _this.userInfo.access_token,
+		  				order_id: id
+		  			};
+		  			fn(params).then(res=>{
+		  				let {errcode,message} = res;
+		      			if (errcode!==0) {
+		      				this.errcode(errcode,message);
+		      			}else{
+		      				_this.$vux.alert.show({
+							  	title: '',
+							  	content: message
+							});
+							_this.getOrder();
+		      			}
+		  			})
+				}
+			});
+  		},
+  		refundFn(id){
+  			let msg = '是否申请退款';
+  			this.orderFn(refund,id,msg);
+  		},
+  		cancelRefundFn(id){
+  			let msg = '是否取消退款';
+  			this.orderFn(cancelRefund,id,msg);
+  		},
+  		cancelOrderFn(id){
+  			let msg = '是否取消订单';
+  			this.orderFn(cancelOrder,id,msg);
+  		},
+  		payFor(item){
+  			this.payfor= true;
+  			this.payItem =  item;
+  		},
+  		submitPayfor(){
+  			let order = this.payItem;
+  			let openid = this.getCookie('openid');
+  			let coupons;
+  			if (this.couponsIndex!=="") {
+  				let couponsObj = this.coupons[this.couponsIndex];
+  				coupons= {
+  					coupon_id: couponsObj.coupon_id,
+  					discount: couponsObj.discount-0+""
+  				}
+  				let arr = [coupons];
+  				coupons =  JSON.stringify(arr);
+  			}
+  			let params = {
+  				access_token: this.userInfo.access_token,
+  				order_sn: order.order_sn,
+  				sum: order.order_amount,
+  				payType: "2",
+  				openid: openid,
+  				coupons: coupons?coupons:""
+  			}
+  			pay(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				let _this=  this;
+      				WeixinJSBridge.invoke('getBrandWCPayRequest',
+                    {
+                        "appId":content.appId,
+						"nonceStr":content.nonceStr,
+						"package":content.package,
+						"signType":content.signType,
+						"timeStamp":content.timeStamp,
+						"paySign":content.paySign
+					},
+                   function(res){
+                        // WeixinJSBridge.log(res.err_msg);
+                        // alert(res.err_code+res.err_desc+res.err_msg);
+                        let  err_msg = res.err_msg;
+                        if (err_msg.indexOf("ok")>-1) {
+                            _this.$router.push('./orderList');
+                        }else{
+                        	_this.$router.back(-1)
+                        }
+                    }
+                );
+			 		this.payfor = false;	
+      			}
+  			})
+  		},
+  		getOrder(){
+  			let params ={
+  				access_token: this.userInfo.access_token
+  			};
+  			orderList(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message
+					});
+      			}else{
+      				this.orderList = content;
+      			}
+  			})
+  		},
+  		checkDetail(item){
+  			let {id,date} = item;
+  			this.$router.push(`orderDetail?order_id=${id}&date=${date}`);
+  		},
+  		getCoupons(){
+  			let params ={
+  				access_token: this.userInfo.access_token
+  			};
+  			myCoupon(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.$vux.alert.show({
+					  	title: '',
+					  	content: message
+					});
+      			}else{
+      				this.coupons = content;
+      			}
+  			})
+  		}
   	},
-   components: {
-    XHeader,Flexbox,FlexboxItem,XImg
-  },
+  	created(){
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
+  	},
+  	mounted(){
+  		this.$nextTick(()=>{
+  			if (!this.userInfo.access_token) {
+  				let _this = this;
+				this.$vux.alert.show({
+				  	title: '',
+				  	content: '请先登录',
+				 	onShow () {
+				  	},
+				 	onHide () {
+				    	_this.$router.replace('./login');
+				  	}
+				})
+  			}else{
+  				this.getOrder();
+  				this.getCoupons();
+  			}
+  		})
+  	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
+@import '../../style/payFor.scss';
 .container{
 	position: fixed;
 	top: 46px;

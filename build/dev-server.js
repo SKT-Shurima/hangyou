@@ -34,16 +34,7 @@ compiler.plugin('compilation', function(compilation) {
     })
 })
 
-var context = config.dev.context
-var proxypath = config.dev.proxypath
 
-var options = {
-    target: proxypath,
-    changeOrigin: true,
-}
-// if (context.length) {
-//     server.use(proxyMiddleware(context, options))
-// }
 
 server.use(proxyMiddleware('/hengyou', {
     target: 'http://hengyou.zertone1.com/app',
@@ -52,10 +43,6 @@ server.use(proxyMiddleware('/hengyou', {
         '^/hengyou': ''
     }
 }))
-// server.use(proxyMiddleware('/m.ele.me@json', {
-//     target: 'https://crayfish.elemecdn.com',
-//     changeOrigin: true,
-// }))
 
 
 

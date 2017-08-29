@@ -10,7 +10,7 @@
 		name: 'v-number',
 		data(){
 			return {
-				currentValue: 1
+				currentValue: 0
 			}
 		},
 		props:{
@@ -25,13 +25,26 @@
 		      	},
 		      	default: 1
 		    },
+		    index: {
+		      	type: Number,
+		      	required:false,
+		    },
+
 		},
 		 watch: {
 		    currentValue (newValue, old) {
 		      	if (newValue !== '') {
-		        	newValue = newValue-0<=1?1:newValue ;
+		        	newValue = newValue-0<=0?0:newValue ;
 		      	}
-		      	this.$emit('on-change', this.currentValue)
+		      	if (typeof this.index ===  'number') {
+		      		let obj = {
+		      			index: this.index,
+		      			value: this.currentValue
+		      		}
+		      		this.$emit('onchange',obj);
+		      	}else{
+		      		this.$emit('onchange', this.currentValue);
+		      	}
 		    },
 		    value (newValue) {
 		      this.currentValue = newValue
@@ -39,7 +52,7 @@
 		  },
 		methods:{
 
-		}
+		},
 	}
 </script>
 <style type="text/css" lang='scss' scoped>

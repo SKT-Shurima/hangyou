@@ -24,7 +24,7 @@
 	    			<i :class="visible?'visible':'notVisible'" @click='visible=!visible'></i>
 	    		</div>
 	    		<div class="agreement">
-			    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="javascript:viod(0)">《用户条款及协议》</a>
+			    	<i :class="{'agree': agreement}" @click='agreement=!agreement'></i>我同意接受<a href="#/protocol">《用户条款及协议》</a>
 			    </div>
 	    		<div class="subBtn">
 	    			<button :disabled='!(agreement&&phone&&passwd&&confirm_passwd&&verify_code)' @click='reg'>注册</button>
@@ -106,7 +106,7 @@ export default {
 		      		phone: this.phone,	
 					nickname: this.nickname,	
 					verify_code: this.verify_code,
-					passwd: this.passwd,	
+					passwd: this.hex_md5(this.passwd),	
 					oauth: 'Phone'
 	      		}
 	      		oauthRegister(params).then(res=>{

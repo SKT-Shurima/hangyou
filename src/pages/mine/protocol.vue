@@ -1,6 +1,6 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{backText: ''}">关于我们</x-header>
+    <x-header :left-options="{backText: ''}">用户条款及协议</x-header>
     <div class="container">
     </div>
   </div>

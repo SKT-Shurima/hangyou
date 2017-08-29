@@ -6,8 +6,8 @@ module.exports = {
         env: {
             NODE_ENV: '"production"'
         },
-        index: path.resolve(__dirname, '../elm/index.html'),
-        assetsRoot: path.resolve(__dirname, '../elm'),
+        index: path.resolve(__dirname, '../dist/index.html'),
+        assetsRoot: path.resolve(__dirname, '../dist'),
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
         productionSourceMap: true,
@@ -21,7 +21,7 @@ module.exports = {
         env: {
             NODE_ENV: '"development"'
         },
-        port: 8028,
+        port: 8026,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
         proxypath: 'http://hengyou.zertone1.com/app',

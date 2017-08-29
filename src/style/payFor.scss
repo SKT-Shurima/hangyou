@@ -1,0 +1,140 @@
+.payfor{
+	.vux-popup-dialog{
+		background-color: #fff;
+	}
+	.title{
+		width: 100%;
+		height: 49px;
+		line-height:49px;
+		text-align: center;
+		overflow: hidden;
+		@include sc(18px,$title_color);
+		@include border-bottom-1px($border_color);
+		i{
+			display: inline-block;
+			height: 42px;
+			float: right;
+			margin-top: 4px;
+		}
+		.vux-x-icon{
+			fill: $hint_color;
+		}
+	}
+	.payType{
+		overflow: hidden;
+		line-height: 42px;
+		color: $title_color;
+		padding: 0px 15px;
+		dt,dd{
+			height: 42px;
+			@include border-bottom-1px($border_color);
+		}
+		dt{
+			font-size: 15px;
+		}
+		dd{  
+			font-size: 16px;
+			overflow: hidden;
+			em{
+				color: $hint_color;
+			}
+			.changeType{
+				float: right;
+			}
+		}
+		i{
+			display: inline-block;
+			width: 20px;
+			height: 20px;
+			vertical-align: middle;
+			margin-right: 10px;
+		}
+		.wx{
+			@include bg_image('../../images/predatemine/wx');
+		}
+		.installment{
+			@include bg_image('../../images/predatemine/wallet');
+		}
+	}
+	.totalPrice{
+		overflow: hidden;
+		line-height: 60px;
+		height: 60px;
+		padding-right: 15px;
+		span{
+			float: right;
+			@include sc(16px,#000);
+		}
+		em{
+			color: $price_color;
+		}
+	}
+	.submitPayfor{
+		width: 100%;
+		height: 49px;
+		line-height: 49px;
+		text-align: center;
+		@include sc(16px,#fff);
+		background-color: $primary_color;
+	}
+}
+	.coupons{
+		.list{
+			display: -webkit-box;
+			margin-top: 10px;
+			padding: 0px 14px;
+			.chooseBox{
+				display: inline-block;
+				margin-top: 22px;
+				i{
+					display: inline-block;
+					width: 16px;
+					height: 16px;
+					@include border-1px(#ddd);
+					margin-right: 6px;
+					background-color: #fff;
+				}
+				.checked{
+					@include bg_image('../../images/common/checked');
+				}
+			}
+			.listBox{
+				-webkit-box-flex: 1;
+				border-radius: 5px;
+				background-color: #fff;
+				box-shadow: 0px 0px 2px 1px #e6e6e6;
+			}
+		}
+		dl{
+			overflow: hidden;
+			height: 66px;
+			background-color: #fff;
+			border-radius: 6px;
+			@include border-1px($border_color);
+		}
+		dt,dd{
+			float: left;
+			height: 100%;
+		}
+		dt{
+			width: 25%;
+			line-height: 66px;
+			text-align: center;
+			border-right: 1px solid #ccc;
+			@include sc(16px,#ff6f6f);
+		}
+		dd{
+			width: 75%;
+			text-align: left;
+			padding: 12px 10px 10px 12px ;
+		}
+		.couponsType{
+			text-align: left;
+			line-height: 22px;
+			@include sc(12px,#333);
+		}
+		.couponsDetail{
+			@include sc(6px,#999);
+			line-height: 14px;
+		}
+	}

@@ -1,8 +1,8 @@
 {
-  "name": "wld",
+  "name": "hengyou",
   "version": "1.0.1",
-  "description": "vue2-wld",
-  "author": "young",
+  "description": "hengyou",
+  "author": "Pinet",
   "private": true,
   "license": "Apache",
   "scripts": {
@@ -58,9 +58,11 @@
     "shelljs": "^0.7.4",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
+    "vue-area": "^1.0.0",
     "vue-loader": "^10.0.0",
     "vue-style-loader": "^1.0.0",
     "vue-template-compiler": "^2.1.0",
+    "vueg": "^1.2.6",
     "vux-loader": "^1.0.61",
     "webpack": "^1.13.2",
     "webpack-dev-middleware": "^1.8.3",

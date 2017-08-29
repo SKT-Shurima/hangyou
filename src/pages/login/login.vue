@@ -33,7 +33,7 @@ export default {
 	},
   	data () {
 	    return {
-	    	visible: true,
+	    	visible: false,
 	    	passwd: "",
 	    	phone: ''
 	    }
@@ -50,7 +50,7 @@ export default {
   			if (phone&&passwd) {
   				let params = {
   					phone: this.phone,
-  					passwd: this.passwd,
+  					passwd: this.hex_md5(this.passwd),
   					oauth: 'Phone'
   				}
   				OauthLogin(params).then(res=>{
@@ -72,12 +72,7 @@ export default {
   				})
   			}
   		}
-	},
-  	mounted(){
-  		this.$nextTick(()=>{
-  			
-  		})
-  	}
+	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>

@@ -1,7 +1,9 @@
 import axios from 'axios'
 
 // 开发
-let base = '/hengyou' ;
+// let base = '/hengyou' ;
+// 测试
+let base = 'http://hengyou.zertone1.com/app'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 axios.defaults.headers.get['Content-Type'] = 'application/x-www-form-urlencoded';
 
@@ -56,7 +58,11 @@ export const pushCoupon = params =>{
 	params =  trans(params);
 	return axios.get(`${base}/initAction/pushCoupon?${params}`).then(res=>res.data);
 }
-
+// 获取同目的地
+export const  getDes = params =>{
+	params =  trans(params);
+	return axios.get(`${base}/categoryAction/getDes?${params}`).then(res=>res.data);
+}
 
 // 预定
 // 预定首页
@@ -89,3 +95,91 @@ export const  specialDetail = params =>{
 	params = trans(params);
 	return axios.get(`${base}/orderAction/specialDetail?${params}`).then(res=>res.data);
 }
+
+
+
+// 我的
+// 基本信息
+export const getUserInfo = params =>{
+	params= trans(params);
+	return axios.get(`${base}/userAction/getUserInfo?${params}`).then(res=>res.data);
+}
+// 我的旅客
+export const passenger = params =>{
+	params= trans(params);
+	return axios.get(`${base}/userAction/passenger?${params}`).then(res=>res.data);
+}
+// 添加旅客信息
+export const addPassenger = params =>{
+	params = trans(params);
+	return axios.post(`${base}/userAction/addPassenger`,params).then(res=>res.data);
+}
+// 删除旅客
+export const delPassenger = params =>{
+	params = trans(params);
+	return axios.post(`${base}/userAction/delPassenger`,params).then(res=>res.data);
+}
+// 我的优惠券
+export const myCoupon = params =>{
+	params= trans(params);
+	return axios.get(`${base}/userAction/myCoupon?${params}`).then(res=>res.data);
+}
+// 获取所有消息
+export const GetAllMessage = params =>{
+	params= trans(params);
+	return axios.get(`${base}/messageAction/GetAllMessage?${params}`).then(res=>res.data);
+}
+//  获取联系人
+export const getContact = params =>{
+	params = trans(params);
+	return axios.get(`${base}/userAction/getContact?${params}`).then(res=>res.data);
+}
+//  删除优惠券
+export const delCoupon = params =>{
+	params = trans(params);
+	return axios.get(`${base}/userAction/delCoupon?${params}`).then(res=>res.data);
+}
+// 编辑常用联系人
+export const editContact = params =>{
+	params = trans(params);
+	return axios.get(`${base}/userAction/editContact?${params}`).then(res=>res.data);
+}
+
+
+// 订单
+// 订单列表
+export  const orderList = params =>{
+	params = trans(params);
+	return axios.get(`${base}/orderAction/lists?${params}`).then(res=>res.data);
+}
+// 申请退款
+export  const refund = params =>{
+	params = trans(params);
+	return axios.post(`${base}/orderAction/refund`,params).then(res=>res.data);
+}
+// 取消退款
+export  const cancelRefund = params =>{
+	params = trans(params);
+	return axios.post(`${base}/orderAction/cancelRefund`,params).then(res=>res.data);
+}
+// 取消订单
+export  const cancelOrder = params =>{
+	params = trans(params);
+	return axios.post(`${base}/orderAction/cancel`,params).then(res=>res.data);
+}
+// 立即支付
+export const pay = params =>{
+	params = trans(params);
+	return axios.get(`${base}/orderAction/pay?${params}`).then(res=>res.data);
+}
+// 订单详情
+export const detail = params =>{
+	params = trans(params);
+	return axios.get(`${base}/orderAction/detail?${params}`).then(res=>res.data);
+}
+// 生成订单
+export const generate = params=>{
+	params = trans(params);
+	return axios.post(`${base}/orderAction/generate`,params).then(res=>res.data);
+}
+

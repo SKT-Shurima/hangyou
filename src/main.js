@@ -2,18 +2,26 @@ import Vue from 'vue';
 import App from './App';
 import VueRouter from 'vue-router';
 import routes from './router/router';
-import store from './store/';
+import mixins from  './config/mixins'
+import vueg from 'vueg';
+import 'vueg/css/transition-min.css';
+import store from './store/store';
 import { routerMode } from './config/env';
 import './config/rem';
 import FastClick from 'fastclick';
 import AlertPlugin from 'vux/src/plugins/alert'
+import ConfirmPlugin from 'vux/src/plugins/confirm'
 import LoadingPlugin from 'vux/src/plugins/loading'
 import Toast from 'vux/src/plugins/toast'
-import {hex_md5} from './config/md5'
-
+import { WechatPlugin } from 'vux'
+console.log(WechatPlugin)
 Vue.use(LoadingPlugin)
+Vue.use(ConfirmPlugin)
 Vue.use(AlertPlugin)
 Vue.use(Toast)
+
+
+
 if ('addEventListener' in document) {
     document.addEventListener('DOMContentLoaded', function() {
         FastClick.attach(document.body);
@@ -26,7 +34,9 @@ const router = new VueRouter({
     routes,
     mode: routerMode,
     strict: process.env.NODE_ENV !== 'production'
-})
+});
+Vue.use(vueg,router);
+
 
 // 过滤器
 Vue.filter('currency',val=> {
@@ -59,46 +69,26 @@ function trans (val){
 };
 
 // mixins
-Vue.mixin({
-    methods:{
-        hex_md5(val){
-            return hex_md5(val);
-        },
-        checkPhone(phone){
-            if (phone === '') {
-                this.$vux.alert.show({
-                    title: '',
-                    content: '请输入手机号'
-                })
-                return false ;
-            } else {
-                let reg = /^1[3|4|5|7|8][0-9]\d{4,8}$/g ;
-                if (!reg.test(phone)) {
-                    this.$vux.alert.show({
-                        title: '',
-                        content: '请输入正确手机号'
-                    });
-                    return false ;
-                }
-            }
-            return true;
-        },
-        checkVal(val,msg){
-            if (val==="") {
-                this.$vux.alert.show({
-                    title: '',
-                    content: `请输入${msg}`
-                });
-                return false;
-            }
-            return true;
-        }
+Vue.mixin(mixins);
+router.afterEach((to, from, next) => {
+    if (document.URL.indexOf('index.html?t=') < 0) {
+      let timestamp = (new Date()).valueOf()
+      window.location.href = '/index.html?t=' + timestamp + '#' + to.fullPath
     }
-})
+    let openid = mixins.methods.getCookie("openid");
+    // if (!openid) {
+    //     const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
+    //     let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
+    //         window.location.href = href;
+    // }
+});
+
+
+let _this;
 new Vue({
   el: '#app',
   router,
   store,
   template: '<App/>',
-  components: { App }
-})
+  components: { App },
+});

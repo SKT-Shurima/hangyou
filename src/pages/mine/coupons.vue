@@ -3,17 +3,17 @@
     	<x-header :left-options="{backText: ''}">优惠券</x-header>
     	<div class="container">
     		<ul>
-    			<li class="list" v-for='(item,index) in 3'>
+    			<li class="list" v-for='(item,index) in couponList' :key='index'>
     				<dl>
     					<dt class="border-right-1px">
-    						{{50|currency}}
+    						{{item.discount-0|currency}}
     						<i class="top_left"></i>
     						<i class="bottom_left"></i>
     					</dt>
     					<dd>
     						<div class="name">优惠抵扣</div>
-    						<div class="date">{{1315181612*1000|dateStyle}}至{{1315181612*1000|dateStyle}}有效</div>
-    						<i class="del" @click='confirmBol=true;delIndex=index;'>
+    						<div class="date">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+    						<i class="del" @click='del(item.customer_coupon_id)'>
     							<x-icon type="ios-close-empty" size="40"></x-icon>	
     						</i>
     					</dd>
@@ -21,50 +21,97 @@
     			</li>
     		</ul>
     	</div>
-    	 <div v-transfer-dom class="confirm">
-	    <confirm v-model="confirmBol"
-	    	@on-cancel="onCancel"
-	   		@on-confirm="onConfirm">
-	        <p>确定删除该购物券?</p>
-	    </confirm>
-    </div>
   	</div>
 </template>
 
 <script type='text/esmascript-6'>
-import XHeader from 'vux/src/components/x-header'
-import TransferDom from 'vux/src/directives/transfer-dom' 
-import confirm from 'vux/src/components/confirm'
+import XHeader from 'vux/src/components/x-header' 
+import {myCoupon,delCoupon} from '../../config/api'
 export default {
-	directives: {
-	    TransferDom
-	},
   	data () {
 	    return {
-	    	confirmBol: false,
-	    	delIndex: "",
+	    	couponList: []
 	    }
   	},
 	components: {
-    	XHeader,confirm
+    	XHeader
   	},
   	methods: {
-  		onCancel(){
-
+  		getCoupon(){
+  			let params = {
+  				access_token: this.userInfo.access_token
+  			}
+  			myCoupon(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				this.couponList = content ;
+      			}
+  			})
   		},
-  		onConfirm(){
-
+  		del(id){
+  			let _this = this;
+  			this.$vux.confirm.show({
+  				title:"",
+				content: '是否删除该优惠券？',
+				onCancel () {
+				    return false;
+				},
+				onConfirm () {
+					let params ={
+		  				access_token: _this.userInfo.access_token,
+		  				customer_coupon_id: id
+		  			};
+		  			delCoupon(params).then(res=>{
+		  				let {errcode,message} = res;
+		      			if (errcode!==0) {
+		      				_this.errcode(errcode,message);
+		      			}else{
+		      				_this.$vux.alert.show({
+							  	title: '',
+							  	content: message,
+							  	onHide(){
+							  		_this.getCoupon();
+							  	}
+							});
+		      			}
+		  			})
+				}
+			});
   		}
+	},
+  	created(){
+  		let userInfo =  localStorage.userInfo;
+		if (userInfo) {
+			this.userInfo =  JSON.parse(userInfo);	
+		}
 	},
   	mounted(){
   		this.$nextTick(()=>{
-  			
+  			if (!this.userInfo.access_token) {
+  				let _this = this;
+				this.$vux.alert.show({
+				  	title: '',
+				  	content: '请先登录',
+				 	onShow () {
+				  	},
+				 	onHide () {
+				    	_this.$router.replace('./login');
+				  	}
+				})
+  			}else{
+  				this.getCoupon();
+  			}
   		})
   	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
+.wrap{
+	height: 100vh;
+}
 	.container{
 		position: fixed;
 		top: 46px;

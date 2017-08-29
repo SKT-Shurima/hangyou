@@ -3,19 +3,23 @@ import home from '../pages/home/homeMain'
 import preMain from '../pages/predatemine/preMain'
 import mine from '../pages/mine/mineMain'
 import search from '../pages/home/search'
+import getDes from '../pages/home/getDes'
 import goodDetail from '../pages/predatemine/goodDetail'
 import predatemine from '../pages/predatemine/predatemine'
 import hotelFlightDetail from '../pages/predatemine/hotelFlightDetail'
-import travelerInfo from '../pages/predatemine/travelerInfo'
 import chooseSpecial from '../pages/predatemine/chooseSpecial'
 import completeInfo from '../pages/predatemine/completeInfo'
 import msg from '../pages/mine/msg'
 import setting from '../pages/mine/setting'
 import aboutUs from '../pages//mine/aboutUs'
+import protocol from '../pages/mine/protocol'
 import orderList from '../pages/mine/orderList'
 import orderDetail from '../pages/mine/orderDetail'
 import travelers from '../pages/mine/travelers'
+import addTraveler from '../pages/mine/addTraveler'
 import coupons from '../pages/mine/coupons'
+import editContact from '../pages/mine/editContact'
+import contact from '../pages/mine/contact'
 import login from '../pages/login/login'
 import reg from '../pages/login/reg'
 import forgetPw from '../pages/login/forgetPw'
@@ -46,6 +50,9 @@ const path = [
         path: '/search',
         component: search
     },{
+        path: '/getDes',
+        component: getDes
+    },{
         path: '/goodDetail',
         component: goodDetail
     },{
@@ -61,8 +68,8 @@ const path = [
         path:  '/completeInfo',
         component: completeInfo
     },{
-        path: '/travelerInfo',
-        component: travelerInfo
+        path: '/addTraveler',
+        component: addTraveler
     },{
         path: '/msg',
         component: msg
@@ -72,6 +79,9 @@ const path = [
     },{
         path: '/aboutUs',
         component: aboutUs
+    },{
+        path: '/protocol',
+        component: protocol
     },{
         path: '/orderList',
         component: orderList
@@ -84,6 +94,12 @@ const path = [
     },{
         path: '/coupons',
         component: coupons
+    },{
+        path: '/editContact',
+        component: editContact
+    },{
+        path: '/contact',
+        component: contact
     },{
         path: '/login',
         component: login

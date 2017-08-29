@@ -4,7 +4,7 @@
 		<div class="header">
 			<div class="search">
 				<icon type="search"></icon>
-				<router-link v-bind:to="''" class='inputArea'>请输入目的地</router-link>
+				<router-link v-bind:to="'search'" class='inputArea'>请输入目的地</router-link>
 			</div>
 			<swiper auto loop :interval=3000  :list='bannerList' dots-position='center'  :aspect-ratio='350/750'></swiper>	
 		</div>
@@ -14,35 +14,38 @@
 				<i></i>
 				人气热卖
 			</div>
-			<div class="main">
-				<flexbox>
-					<flexbox-item>
-						<img src="https://static.vux.li/demo/1.jpg">
-					</flexbox-item>
-				</flexbox>
+			<div class="box" v-for='(item,index) in mainList' :key='index'>
+				<div class="main" @click='getDes(item.main.destination_id)'>
+					<flexbox>
+						<flexbox-item>
+							<img :src="item.main.cover_images">
+						</flexbox-item>
+					</flexbox>
+					<div class="theme">
+						<strong v-text='item.main.name'></strong>
+						<span v-text='item.main.descript'></span>
+					</div>
+				</div>
+				<div class="detail">
+					<flexbox>
+						<flexbox-item :span='1/2'>
+							<dl v-if='item.detail.left' @click='getDes(item.detail.left.destination_id)'>
+								<dt><img :src="item.detail.left.cover_images"></dt>
+								<dd class="infoName" v-text='item.detail.left.name'></dd>
+								<dd class="infoDetail" v-text='item.detail.left.descript'></dd>
+							</dl>
+						</flexbox-item>
+						<flexbox-item :span='1/2' style='margin-left:0px;'>
+							<dl v-if='item.detail.right' @click='getDes(item.detail.right.destination_id)'>
+								<dt><img :src="item.detail.right.cover_images"></dt>
+								<dd class="infoName" v-text='item.detail.right.name'></dd>
+								<dd class="infoDetail" v-text='item.detail.right.descript'></dd>
+							</dl>
+						</flexbox-item>
+					</flexbox>
+				</div>
 			</div>
-			<div class="theme">
-				<strong>曼谷+芭提雅</strong>
-				<span>酒店升级，交通极便利</span>
-			</div>
-			<div class="detail">
-				<flexbox>
-					<flexbox-item :span='1/2'>
-						<dl>
-							<dt><img src="https://static.vux.li/demo/1.jpg"></dt>
-							<dd class="infoName">普吉岛</dd>
-							<dd class="infoDetail">入住泳池别墅和海边五星酒店</dd>
-						</dl>
-					</flexbox-item>
-					<flexbox-item :span='1/2' style='margin-left:0px;'>
-						<dl>
-							<dt><img src="https://static.vux.li/demo/1.jpg"></dt>
-							<dd class="infoName">普吉岛</dd>
-							<dd class="infoDetail">入住泳池别墅和海边五星酒店</dd>
-						</dl>
-					</flexbox-item>
-				</flexbox>
-			</div>
+			
 		</div>
 		<!-- 优惠券信息 -->
 		<div v-transfer-dom>
@@ -85,7 +88,8 @@ import {banner,hot,pushCoupon} from '../../config/api'
 				bannerList :[],
 				showCoupons: false,
 				userInfo: "",
-				coupons: ''
+				coupons: '',
+				mainList: []
 			}
 		},
 		components: {
@@ -99,10 +103,7 @@ import {banner,hot,pushCoupon} from '../../config/api'
 				banner(params).then(res=>{
 	      			let {errcode,message,content} = res;
 	      			if (errcode!==0) {
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message
-						});
+	      				this.errcode(errcode,message);
 	      			}else{
 	      				let arr = [];
 	      				for(let i =0 ; i <content.length;i++){
@@ -125,7 +126,18 @@ import {banner,hot,pushCoupon} from '../../config/api'
 						  	content: message
 						});
 	      			}else{
-	      				
+	      				let arr = [];
+	      				for (let i = 0; i < content.length ; i+=3) {
+	      					let obj = {
+	      						main: content[i],
+	      						detail:{
+	      							left: content[i+1],
+	      							right: content[i+2]
+	      						}
+	      					}
+	      					arr.push(obj);
+	      				}
+	      				this.mainList = arr;
 	      			}
 				})
 			},
@@ -142,22 +154,27 @@ import {banner,hot,pushCoupon} from '../../config/api'
 	      				this.showCoupons = true;
 	      			}
 				})
-			}
+			},
+			getDes(id){
+	  			this.$router.push(`/getDes?destination_id=${id}`);
+	  		},
 		},
 		created(){
 			let userInfo =  localStorage.userInfo;
-			this.userInfo =  JSON.parse(userInfo);
+			if (userInfo) {
+				this.userInfo =  JSON.parse(userInfo);	
+			}
 		},
 		mounted(){
 			this.$nextTick(()=>{
 				this.getBanner();
 				this.getHot();
-				this.getCoupon();	
+				this.getCoupon();
 			})
 		}
 	}
 </script>
-<style type="text/css" lang='scss'>
+<style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
 	.headWrap{
 		.header{

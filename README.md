@@ -15,7 +15,6 @@ npm install //安装项目依赖
 ```
 npm run dev
 
-访问 http://localhost:8088（自动编译）
 ```
 
 ### 生产环境

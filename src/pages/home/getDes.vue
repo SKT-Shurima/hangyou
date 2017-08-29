@@ -1,15 +1,6 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{showBack: false}">
-    	<i @click='keyword=""'>
-    		<x-icon type="ios-close-empty" size="42"></x-icon>
-    	</i>
-    	<div class="search">
-			<icon type="search"></icon>
-			<input type="text" placeholder="请输入目的地" v-model='keyword'>
-		</div>
-		<span class="searchBtn" @click='searchFn'>搜索</span>
-	</x-header>
+    <x-header :left-options="{backText: ''}">同目的地</x-header>
 	<div class="container">
 		<ul>
 			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.start_id)'>
@@ -39,23 +30,25 @@
 import XHeader from 'vux/src/components/x-header'  
 import Icon from 'vux/src/components/icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
-import {search} from '../../config/api'
+import {getDes} from '../../config/api'
 export default {
   	data () {
 	    return {
 	    	keyword: "",
-	    	goodsList:[]
+	    	goodsList:[],
+	    	page: 1
 	    }
   	},
   	components: {
    		XHeader,Icon,Flexbox,FlexboxItem
   	},
   	methods: {
-	    searchFn(){
+	    getList(){
 	    	let params = {
-	    		keyword: this.keyword
+	    		destination_id: this.reqParams.destination_id,
+	    		page: this.page
 	    	}
-	    	search(params).then(res=>{
+	    	getDes(params).then(res=>{
 	    		let {errcode,message,content} = res;
 	    		if (errcode!==0) {
       				this.$vux.alert.show({
@@ -69,8 +62,16 @@ export default {
 	    },
 	    checkDetail(id){
 	    	this.$router.push(`./goodDetail?start_id=${id}`);
-	    }
+	    },
 	},
+  	created(){
+  		this.reqParams = this.getHashReq();
+  	},
+  	mounted(){
+  		this.$nextTick(()=>{
+  			this.getList();
+  		})
+  	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
@@ -194,6 +195,10 @@ export default {
 			    width: 125px;
 			    height: 85px;
 			    margin: 0px 16px;
+			    img{
+			    	width: 100%;
+			    	height: 100%;
+			    }
 			}
 		}
 		.noMore{

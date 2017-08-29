@@ -29,6 +29,12 @@ var webpackConfig = merge(baseWebpackConfig, {
     },
     plugins: [
         // http://vuejs.github.io/vue-loader/en/workflow/production.html
+         // extract webpack runtime and module manifest to its own file in order to
+        // prevent vendor hash from being updated whenever app bundle is updated
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'manifest',
+            chunks: ['vendor']
+        }),
         new webpack.DefinePlugin({
             'process.env': env
         }),
@@ -47,14 +53,11 @@ var webpackConfig = merge(baseWebpackConfig, {
             filename: config.build.index,
             template: 'index.html',
             inject: true,
-            // minify: {
-            //     removeComments: true,
-            //     collapseWhitespace: true,
-            //     removeAttributeQuotes: true
-            //         // more options:
-            //         // https://github.com/kangax/html-minifier#options-quick-reference
-            // },
-            // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+            minify: {
+                removeComments: true,
+                collapseWhitespace: true,
+                removeAttributeQuotes: true
+            },
             chunksSortMode: 'dependency'
         }),
         // split vendor js into its own file
@@ -70,12 +73,6 @@ var webpackConfig = merge(baseWebpackConfig, {
                     ) === 0
                 )
             }
-        }),
-        // extract webpack runtime and module manifest to its own file in order to
-        // prevent vendor hash from being updated whenever app bundle is updated
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'manifest',
-            chunks: ['vendor']
         })
     ]
 })
