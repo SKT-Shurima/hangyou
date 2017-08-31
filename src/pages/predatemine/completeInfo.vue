@@ -3,34 +3,36 @@
     <x-header :left-options="{backText: ''}">完善信息</x-header>
     <div class="container">
     	<ul class="traveler">
-    		<li v-for='(item,index) in passenger' :key='index'> 
-    			<h1>旅客{{index+1}}</h1>
-    			<dl class="infoDetail">
-	    			<dt class="name" v-text='item.name'></dt>
-	    			<dd class="spell">
-	    				<span>{{item.lname}}/{{item.surname}}</span>
-	    			</dd>
-	    			<dd class="num">
-	    				<span>身份证号：</span><em v-text='item.card'></em>
-	    			</dd>
-	    		</dl>
+    		<li v-for='(item,index) in passenger' :key='index'>
+    			<div v-if='item.name'>
+    				<h1>旅客{{index+1}}</h1>
+	    			<dl class="infoDetail">
+		    			<dt class="name">{{item.name}}<span @click='delPassenger(index)' class="del"><i></i>删除</span></dt>
+		    			<dd class="spell">
+		    				<span>{{item.lname}}/{{item.surname}}</span>
+		    			</dd>
+		    			<dd class="num">
+		    				<span>身份证号：</span><em v-text='item.card'></em>
+		    			</dd>
+		    		</dl>
+    			</div> 
+    			<div class="newAdd" v-else>
+		    		<h1>旅客{{index+1}}</h1>
+					<flexbox>
+				        <flexbox-item>
+				        	<router-link :to='{path:"/travelers",query:{choose:true}}'>
+				          		<x-button type="default">选择旅客</x-button>
+				          	</router-link>
+				        </flexbox-item>
+				        <flexbox-item>
+				        	<router-link :to='{path:"/addTraveler",query:{addTraveler:true}}'>
+				          		<x-button type="default">填写信息</x-button>
+				          	</router-link>
+				        </flexbox-item>
+				    </flexbox>
+				</div>
     		</li>
     	</ul>
-    	<div class="newAdd">
-    		<h1>旅客{{passenger.length+1}}</h1>
-			<flexbox>
-		        <flexbox-item>
-		        	<router-link :to='{path:"/travelers",query:{choose:true}}'>
-		          		<x-button type="default">选择旅客</x-button>
-		          	</router-link>
-		        </flexbox-item>
-		        <flexbox-item>
-		        	<router-link :to='{path:"/addTraveler",query:{addTraveler:true}}'>
-		          		<x-button type="default">填写信息</x-button>
-		          	</router-link>
-		        </flexbox-item>
-		    </flexbox>
-		</div>
     	<div class="contact">
     		<h1>联系人信息</h1>
     		<div v-if='contact'>
@@ -91,14 +93,15 @@
   			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
 				<li class="list">
 					<div class="chooseBox">
-    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    					<i :class="{'checked': item.checkBol}" @click='chooseCoupons(index)'></i>
     				</div>
     				<div class="listBox">
     					<dl>
 							<dt>{{item.discount-0|currency}}</dt>
 							<dd>
 								<div class='couponsType'>优惠抵扣</div>
-								<div class="couponsDetail">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+								<div class="couponsDetail" v-if='item.type==="2"'>{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+								<div class="couponsDetail" v-else>{{item.date_add*1000|dateStyle}}至{{(item.date_add*1000+item.valid_period*86400*1000)|dateStyle}}有效</div>
 							</dd>
 						</dl>
     				</div>
@@ -132,7 +135,7 @@ import Popup from 'vux/src/components/popup'
 import Picker from 'vux/src/components/picker'
 import CheckIcon from 'vux/src/components/check-icon'
 import XButton from 'vux/src/components/x-button'   
-import {myCoupon,getContact,generate,pay,getOpenid} from '../../config/api'
+import {myCoupon,getContact,generate,pay} from '../../config/api'
 export default {
 	directives: {
 	    TransferDom
@@ -148,12 +151,54 @@ export default {
 	    	order_sn:'',
 	    	sum: '',
 	    	code:'',
+	    	preBaseInfo: {},
 	    	passenger:[],
 	    	coupons: [],
-	    	couponsIndex: ""
+	    	couponsIndex: "",
+	    	userInfo: {}
 	    }
   	},
+  	components: {
+	    XHeader,Flexbox,FlexboxItem,XButton,Group,XInput ,XTextarea ,Cell,Popup,Picker,CheckIcon,XButton
+	},
   	methods: {
+  		delPassenger(index){
+  			let passenger =  this.passenger;
+  			passenger.splice(index,1);
+  			sessionStorage.passenger = JSON.stringify(passenger);
+  			let obj = {
+  				name:""
+  			}
+  			passenger.push(obj);
+  			this.passenger= passenger;
+  		},
+  		getCoupons(){
+  			let params ={
+  				access_token: this.userInfo.access_token
+  			};
+  			myCoupon(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				for(let i = 0;i<content.length;i++){
+      					content[i].checkBol =  false;
+      				}
+      				this.coupons = content;
+      			}
+  			})
+  		},
+  		chooseCoupons(index){
+  			for(let i = 0;i<this.coupons.length;i++){
+  				this.coupons[i].checkBol = false;
+  				if (this.couponsIndex===index) {
+  					this.coupons[index].checkBol = false;
+  				}else{
+  					this.coupons[index].checkBol = true;
+  				}
+  			}
+  			this.couponsIndex =  index;
+  		},
   		getContactFn(){
   			let params = {
   				access_token: this.userInfo.access_token
@@ -181,6 +226,7 @@ export default {
   				child_count: preBaseInfo.child_count,
   				room_count: preBaseInfo.room_count,
   				date_price_id: preBaseInfo.date_price_id,
+  				difference: preBaseInfo.difference,
   				start_id: preBaseInfo.start_id,
   				customer_contact_id: this.contact.customer_contact_id,
   				note: this.note
@@ -188,15 +234,20 @@ export default {
   			if (passenger.length) {
   				let passengerArr = [];
 	  			for(let i = 0 ; i < passenger.length;i++){
-	  				passengerArr[i] = passenger.customer_passenger_id;
+	  				if (passenger[i].customer_passenger_id) {
+	  					passengerArr[i] = passenger[i].customer_passenger_id;
+	  				}else{
+	  					this.$vux.toast.show({
+		                    text: '请完善旅客信息',
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom'
+		                })
+			  			return false;
+	  				}
 	  			}
 	  			params.customer_passenger = JSON.stringify(passengerArr);
-	  		}else{
-	  			this.$vux.alert.show({
-				  	title: '',
-				  	content: '请选择旅客',
-				});
-	  			return false;
 	  		}
   			if (special.length) {
   				params.special = JSON.stringify(special);
@@ -214,22 +265,26 @@ export default {
   		},
   		submitPayfor(){
   			let openid = this.getCookie('openid');
-  			let coupons;
-  			if (this.couponsIndex!=="") {
-  				let couponsObj = this.coupons[this.couponsIndex];
-  				coupons= {
-  					coupon_id: couponsObj.coupon_id,
-  					discount: couponsObj.discount-0+""
+  			let checkCoupons;
+  			let coupons = this.coupons;
+  			for(let i = 0;i<coupons.length;i++ ){
+  				if (coupons[i].checkBol) {
+  					checkCoupons={
+  						coupon_id: coupons[i].coupon_id,
+  						discount: coupons[i].discount-0+""
+  					}
   				}
-  				let arr = [coupons];
-  				coupons =  JSON.stringify(arr);
+  			}
+  			if (checkCoupons) {
+  				let arr = [checkCoupons];
+  				checkCoupons = JSON.stringify(arr);
   			}
   			let params = {
   				access_token: this.userInfo.access_token,
   				order_sn: this.order_sn,
   				sum: this.sum,
   				openid: openid,
-  				coupons: coupons?coupons:""
+  				coupons: checkCoupons?checkCoupons:""
   			}
   			pay(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -250,11 +305,10 @@ export default {
                         // WeixinJSBridge.log(res.err_msg);
                         // alert(res.err_code+res.err_desc+res.err_msg);
                         let  err_msg = res.err_msg;
-                        if (err_msg.indexOf("ok")>-1) {
-                            _this.$router.push('./orderList');
-                        }else{
-                        	_this.$router.back(-1)
-                        }
+                        sessionStorage.passenger = null;
+                        sessionStorage.preBaseInfo= null;
+                        sessionStorage.special =null;
+                        _this.$router.push('./mine');
                     }
                 );
 			 		this.payfor = false;	
@@ -262,12 +316,28 @@ export default {
   			})
   		},
   	},
-	components: {
-	    XHeader,Flexbox,FlexboxItem,XButton,Group,XInput ,XTextarea ,Cell,Popup,Picker,CheckIcon,XButton
-	},
 	created(){
-		if (sessionStorage.passenger) {
-			this.passenger = JSON.parse(sessionStorage.passenger);
+		if (sessionStorage.preBaseInfo) {
+			this.preBaseInfo =  JSON.parse(sessionStorage.preBaseInfo);
+			let num = this.preBaseInfo.adult_count;
+			let arr =[];
+			for (let i = 0; i < num; i++) {
+				let obj = {
+					name: ""
+				}
+				arr.push(obj);
+			}
+			this.passenger= arr;
+		}else{
+			this.$router.back(-1);
+		}
+		let passenger = JSON.parse(sessionStorage.passenger);
+		if (passenger.length) {
+			let storePassenger = this.passenger;
+			for (let  i = 0; i < passenger.length; i++) {
+				storePassenger[i] = passenger[i];
+			}
+			this.passenger = storePassenger;
 		}
   		let userInfo =  localStorage.userInfo;
 		if (userInfo) {
@@ -277,23 +347,10 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getContactFn();
-  			}
-  			var href = location.href; 
-  			if(href.indexOf('code')>-1){
-  				this.code = href.split('?')[1].split('&')[0].split('=')[1];
-  				this.getOpenid(); 
+  				this.getCoupons();
   			}
   		})
   	}
@@ -348,14 +405,28 @@ export default {
 			padding: 10px 0px;
 			.name{
 				color: #000;
+				.del{
+					float: right;
+					@include sc(15px,$hint_color);
+					i{
+						display: inline-block;
+						width: 20px;
+						height: 20px;
+						margin: 0px 4px;
+						vertical-align: sub;
+						@include bg-image('../../images/mine/del');
+					}
+				}
 			}
 			.spell{
 				color: $title_color;
+				overflow: hidden;
 				.vux-x-icon{
 					float: right;
 					fill: #ccc;
 					margin-top: 2px;
 				}
+				
 			}
 			.num{
 				span{
@@ -409,6 +480,7 @@ export default {
 		}
 		h1{
 			padding-left: 15px;
+			overflow: hidden;
 		}
 		.weui-label{
 			@include sc(15px,#000);

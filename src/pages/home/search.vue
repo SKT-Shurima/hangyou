@@ -1,9 +1,6 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{showBack: false}">
-    	<i @click='back'>
-    		<x-icon type="ios-close-empty" size="42"></x-icon>
-    	</i>
+    <x-header :left-options="{backText: ''}">
     	<div class="search">
 			<icon type="search"></icon>
 			<input type="text" placeholder="请输入目的地" v-model='keyword'>
@@ -51,9 +48,6 @@ export default {
    		XHeader,Icon,Flexbox,FlexboxItem
   	},
   	methods: {
-  		back(){
-  			this.$router.replace('./home');
-  		},
 	    searchFn(){
 	    	let params = {
 	    		keyword: this.keyword
@@ -61,10 +55,13 @@ export default {
 	    	search(params).then(res=>{
 	    		let {errcode,message,content} = res;
 	    		if (errcode!==0) {
-      				this.$vux.alert.show({
-					  	title: '',
-					  	content: message
-					});
+      				 this.$vux.toast.show({
+	                    text: message,
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                })
       			}else{
       				this.goodsList = content;
       			}
@@ -84,12 +81,6 @@ export default {
 		top: 0px;
 		left: 0px;
 		z-index: 999999;
-	}
-	.vux-x-icon.vux-x-icon-ios-close-empty{
-		position: absolute;
-		left: 2%;
-		fill: #fff;
-
 	}
 	.searchBtn{
 		position: absolute;

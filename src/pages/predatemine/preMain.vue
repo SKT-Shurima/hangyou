@@ -73,10 +73,7 @@ export default {
 	    	getCategory(params).then(res=>{
 	    		let {errcode,message,content} = res;
 	    		if (errcode!==0) {
-      				this.$vux.alert.show({
-					  	title: '',
-					  	content: message
-					});
+      				this.errcode(errcode,message);
       			}else{
       				this.category = content.category;
       				this.destination = content.destination;

@@ -141,7 +141,8 @@
 							<dt>{{item.discount-0|currency}}</dt>
 							<dd>
 								<div class='couponsType'>优惠抵扣</div>
-								<div class="couponsDetail">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+								<div class="couponsDetail" v-if='item.type==="2"'>{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+								<div class="couponsDetail" v-else>{{item.date_add*1000|dateStyle}}至{{(item.date_add*1000+item.valid_period*86400*1000)|dateStyle}}有效</div>
 							</dd>
 						</dl>
     				</div>
@@ -168,7 +169,7 @@ import Picker from 'vux/src/components/picker'
 import CheckIcon from 'vux/src/components/check-icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
 import TransferDom from 'vux/src/directives/transfer-dom'
-import {detail,refund,cancelRefund,cancelOrder,pay} from '../../config/api'
+import {myCoupon,detail,refund,cancelRefund,cancelOrder,pay} from '../../config/api'
 export default {
 	directives: {
 	    TransferDom
@@ -196,6 +197,33 @@ export default {
   			let start_id = this.order.start_id ;
   			let date =  this.reqParams.date;
   			this.$router.push(`/hotelFlightDetail?start_id=${start_id}&date=${date}`);
+  		},
+  		getCoupons(){
+  			let params ={
+  				access_token: this.userInfo.access_token
+  			};
+  			myCoupon(params).then(res=>{
+  				let {errcode,message,content} = res;
+      			if (errcode!==0) {
+      				this.errcode(errcode,message);
+      			}else{
+      				for(let i = 0;i<content.length;i++){
+      					content[i].checkBol =  false;
+      				}
+      				this.coupons = content;
+      			}
+  			})
+  		},
+  		chooseCoupons(index){
+  			for(let i = 0;i<this.coupons.length;i++){
+  				this.coupons[i].checkBol = false;
+  				if (this.couponsIndex===index) {
+  					this.coupons[index].checkBol = false;
+  				}else{
+  					this.coupons[index].checkBol = true;
+  				}
+  			}
+  			this.couponsIndex =  index;
   		},
   		initHotelFlight(hotel,flight){
   			var init_date =  this.reqParams.date-0;
@@ -275,10 +303,13 @@ export default {
 		      			if (errcode!==0) {
 		      				_this.errcode(errcode,message);
 		      			}else{
-		      				_this.$vux.alert.show({
-							  	title: '',
-							  	content: message
-							});
+		      				_this.$vux.toast.show({
+			                    text: message,
+			                    time: 3000,
+			                    type: "text",
+			                    width: "12em",
+			                    position: 'bottom'
+			                })
 		      			}
 		  			})
 				}
@@ -287,10 +318,13 @@ export default {
   		refundFn(id){
   			let state = this.order.order_state;
   			if (state==="7") {
-  				this.$vux.alert.show({
-				  	title: '',
-				  	content: '退款正在受理'
-				});
+  				this.$vux.toast.show({
+                    text: '退款正在受理',
+                    time: 3000,
+                    type: "text",
+                    width: "12em",
+                    position: 'bottom'
+                })
   			}else{
   				let msg = '是否申请退款';
   				this.orderFn(refund,id,msg);
@@ -304,16 +338,6 @@ export default {
   			let msg = '是否取消订单';
   			this.orderFn(cancelOrder,id,msg);
   		},
-  		success (src, ele) {
-		    console.log('success load', src)
-		    const span = ele.parentNode.querySelector('span')
-		    ele.parentNode.removeChild(span)
-		},
-	    error (src, ele, msg) {
-	      	console.log('error load', msg, src)
-		    const span = ele.parentNode.querySelector('span')
-		    span.innerText = 'load error'
-	    },
 	    change (val) {
 	      console.log('val change', val)
 	    },
@@ -323,15 +347,19 @@ export default {
 	    submitPayfor(){
   			let order = this.order;
   			let openid = this.getCookie('openid');
-  			let coupons;
-  			if (this.couponsIndex!=="") {
-  				let couponsObj = this.coupons[this.couponsIndex];
-  				coupons= {
-  					coupon_id: couponsObj.coupon_id,
-  					discount: couponsObj.discount-0+""
+  			let checkCoupons;
+  			let coupons = this.coupons;
+  			for(let i = 0;i<coupons.length;i++ ){
+  				if (coupons[i].checkBol) {
+  					checkCoupons={
+  						coupon_id: coupons[i].coupon_id,
+  						discount: coupons[i].discount-0+""
+  					}
   				}
-  				let arr = [coupons];
-  				coupons =  JSON.stringify(arr);
+  			}
+  			if (checkCoupons) {
+  				let arr = [checkCoupons];
+  				checkCoupons = JSON.stringify(arr);
   			}
   			let params = {
   				access_token: this.userInfo.access_token,
@@ -339,7 +367,7 @@ export default {
   				sum: order.order_amount,
   				payType: "2",
   				openid: openid,
-  				coupons: coupons?coupons:""
+  				coupons: checkCoupons?checkCoupons:""
   			}
   			pay(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -360,11 +388,7 @@ export default {
                         // WeixinJSBridge.log(res.err_msg);
                         // alert(res.err_code+res.err_desc+res.err_msg);
                         let  err_msg = res.err_msg;
-                        if (err_msg.indexOf("ok")>-1) {
-                           	_this.getDetail();
-                        }else{
-                        	_this.$router.back(-1)
-                        }
+                      	 _this.$router.push('./mine');
                     }
                 );
 			 		this.payfor = false;	
@@ -382,18 +406,10 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getDetail();
+  				this.getCoupons();
   			}
   		})
   	}

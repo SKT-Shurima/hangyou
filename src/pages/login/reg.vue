@@ -5,7 +5,7 @@
 	    <div class="container">
 	    	<div class="box">
 	    		<div class="inputBox">
-	    			<i class="phone"></i><input type="text" name="phone" v-model='phone' placeholder="请输入手机号">
+	    			<i class="phone"></i><input type="number" name="phone" v-model='phone' placeholder="请输入手机号" onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))">
 	    		</div>
 	    		<div class="inputBox">
 	    			<i class="nickname"></i><input type="text" name="phone" v-model='nickname' placeholder="请输入昵称">
@@ -15,7 +15,7 @@
 		    			<i class="code"></i><input type="text" name="phone" v-model='verify_code' placeholder="请输入验证码">
 		    		</dt>
 		    		<dd>
-		    			<button v-text='sendText' @click='send_code'></button>
+		    			<button v-text='sendText' @click='send_code' :disabled='time>-1'></button>
 		    		</dd>
 	    		</dl>
 	    		<div class="inputBox">
@@ -53,7 +53,6 @@ export default {
 	    	time: -1 ,
 	        total_time: 60, 
 	        sendText: '发送验证码',
-	        alertBol: false,
 	        agreement: false
 	    }
   	},
@@ -73,10 +72,13 @@ export default {
 	      		sendCode(params).then(res=>{
 	      			let {errcode,message} = res ;
 	      			if (errcode!==0) {
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message
-						});
+	      				this.$vux.toast.show({
+		                    text: message,
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom'
+		                });
 	      			}else{
 	      				this.time = this.total_time ;
 		      			let timer = setInterval(()=>{
@@ -112,10 +114,13 @@ export default {
 	      		oauthRegister(params).then(res=>{
 	      			let {errcode,message,content} = res;
 	      			if (errcode!==0) {
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message
-						});
+	      				this.$vux.toast.show({
+		                    text: message,
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom'
+		                });
 	      			}else{
 	      				let userInfo = window.localStorage.userInfo ;
 	      				if (userInfo) {
@@ -126,10 +131,13 @@ export default {
 	      			}
 	      		})
       		}else{
-      			this.$vux.alert.show({
-				  	title: '',
-				  	content: '请完善信息'
-				})
+      			this.$vux.toast.show({
+                    text: '请输入正确信息',
+                    time: 3000,
+                    type: "text",
+                    width: "12em",
+                    position: 'bottom'
+                });
       		}
 	    }
 	},

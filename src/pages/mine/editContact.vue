@@ -1,6 +1,6 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{backText: ''}">常用联系人</x-header>
+    <x-header :left-options="{backText: ''}">紧急联系人</x-header>
      <group  gutter='0'>
       <x-input title="姓名" name="username" placeholder="请输入您的姓名" placeholder-align='right'  text-align='right' v-model='name'></x-input>
       <x-input title="邮箱" name="username" placeholder="请输入您的邮箱" is-type='email' placeholder-align='right'  text-align='right' v-model='email'></x-input>
@@ -97,7 +97,7 @@ export default {
     				address: this.address
     			}
     			if (this.reqParams.customer_contact_id) {
-    				params.customer_contact_id = this.reqParams.customer_passenger_id ;
+    				params.customer_contact_id = this.reqParams.customer_contact_id ;
     			}
     			editContact(params).then(res=>{
     				let {errcode,message,content} = res;
@@ -105,14 +105,16 @@ export default {
 	      				this.errcode(errcode,message);
 	      			}else{
 	      				let _this = this;
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: '保存成功',
-						  	onHide(){
-						  		_this.$router.back(-1);
-						  	}
-						});
-						
+	      				this.$vux.toast.show({
+                    text: '保存成功',
+                    time: 3000,
+                    type: "text",
+                    width: "12em",
+                    position: 'bottom',
+                    onHide(){
+    						  		_this.$router.back(-1);
+    						  	}
+                });
 	      			}
     			})
     		}
@@ -127,30 +129,13 @@ export default {
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
 		}else{
-			this.$vux.alert.show({
-			  	title: '',
-			  	content: '请先登录',
-			 	onShow () {
-			  	},
-			 	onHide () {
-			    	_this.$router.replace('./login');
-			  	}
-			})
+			this.$router.replace('./login');
 		}
   	},
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getInfo()
   			}

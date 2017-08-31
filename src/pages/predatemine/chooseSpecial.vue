@@ -36,7 +36,7 @@
     	</dd>
     </dl>
  	<div v-transfer-dom>
-  		<popup v-model="chooseBol" @on-hide="" @on-show="">
+  		<popup v-model="chooseBol">
   			<dl class="opera">
   				<dt @click='chooseBol=false'>取消</dt>
   				<dd @click='ensure'>确定</dd>
@@ -81,7 +81,9 @@ export default {
   				let totalprice =  this.preBaseInfo.totalprice;
   				let price = 0;
   				for (let i = 0; i < newVal.length; i++) {
-  					if (newVal[i].count-0) {
+  					let reg = /\d/g;
+  					let date =  newVal[i].date;
+  					if ((newVal[i].count-0)&&reg.test(date)) {
   						price += newVal[i].price*newVal[i].count;
   					}
   				}
@@ -95,7 +97,6 @@ export default {
   			let start =  this.preBaseInfo.start_time;
   			let end =  this.preBaseInfo.end_time;
   			let day = (end-start)/86400;
-  			console.log(day);
   			let arr = [] ;
   			for (let i = 0; i < day; i++) {
   				let time = start + i*86400;
@@ -174,6 +175,8 @@ export default {
 	    			chooseArr.push(obj);
 	    		}
 	    	}
+	    	let passenger = [];
+	    	sessionStorage.passenger = JSON.stringify(passenger);
 	    	sessionStorage.special = JSON.stringify(chooseArr);
 	    	this.$router.push('/completeInfo');
 	    }
@@ -192,16 +195,7 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.initList();
   			}

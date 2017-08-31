@@ -59,6 +59,7 @@
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "vue-area": "^1.0.0",
+    "vue-infinite-scroll": "^2.0.1",
     "vue-loader": "^10.0.0",
     "vue-style-loader": "^1.0.0",
     "vue-template-compiler": "^2.1.0",

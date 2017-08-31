@@ -5,7 +5,7 @@
     		<ul v-if='passengerList.length'>
     			<li class="list" v-for='(item,index) in passengerList' :key='index'>
     				<div class="chooseBox" v-if='showCheck'>
-    					<i :class="{'checked': item.checkBol}" @click='item.checkBol=!item.checkBol'></i>
+    					<i :class="{'checked': item.checkBol}" @click='item.checkBol=!item.checkBol;lastIndex=index'></i>
     				</div>
     				<div class='listBox'>
 	    				<dl>
@@ -62,11 +62,38 @@ export default {
 	    	},
 	    	passengerList: [],
 	    	reqParams:{},
-	    	showCheck: false
+	    	showCheck: false,
+	    	maxNum: 1,
+	    	lastIndex: ""
 	    }
   	},
 	components: {
     	XHeader
+  	},
+  	watch:{
+  		passengerList:{
+  			handler(newVal,oldVal){
+  				if (newVal.length) {
+  					let num = 0 ;
+  					for (let i = 0; i < newVal.length; i++) {
+  						if (newVal[i].checkBol) {
+  							num++;
+  							if (num>this.maxNum) {
+  								this.$vux.toast.show({
+				                    text: `已超出可选数量`,
+				                    time: 3000,
+				                    type: "text",
+				                    width: "12em",
+				                    position: 'bottom'
+				                })
+  								this.passengerList[this.lastIndex].checkBol = false;
+  							}
+  						}
+  					}
+  				}
+  			},
+  			deep: true
+  		}
   	},
   	methods: {
   		getList(){
@@ -118,14 +145,14 @@ export default {
 		      			if (errcode!==0) {
 		      				this.errcode(errcode,message);
 		      			}else{
-		      				_this.$vux.alert.show({
-							  	title: '',
-							  	content: message
-							});
+							_this.$vux.toast.show({
+			                    text: message,
+			                    time: 3000,
+			                    type: "text",
+			                    width: "12em",
+			                    position: 'bottom'
+			                })
 							_this.getList();
-							setTimeout(() => {
-						        _this.$vux.alert.hide()
-						    }, 1000);
 		      			}
 		  			})
 				}
@@ -169,20 +196,19 @@ export default {
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
 		}
+		let preBaseInfo = JSON.parse(sessionStorage.preBaseInfo);
+		if (preBaseInfo) {
+			this.maxNum =  preBaseInfo.adult_count;
+		}else{
+			if (this.reqParams.choose) {
+				this.$router.back(-1);
+			}
+		}
 	},
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getList();
   			}

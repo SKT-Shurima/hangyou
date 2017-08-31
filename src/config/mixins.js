@@ -6,18 +6,24 @@ const  mixins = {
         },
         checkPhone(phone){
             if (phone === '') {
-                this.$vux.alert.show({
-                    title: '',
-                    content: '请输入手机号'
+                this.$vux.toast.show({
+                 text: '请输入手机号',
+                 time: 3000,
+                 type: 'text',
+                 width: "12em",
+                 position: 'bottom'
                 })
                 return false ;
             } else {
                 let reg = /^1[3|4|5|7|8][0-9]\d{4,8}$/g ;
                 if (!reg.test(phone)) {
-                    this.$vux.alert.show({
-                        title: '',
-                        content: '请输入正确手机号'
-                    });
+                    this.$vux.toast.show({
+                        text: '请输入正确手机号',
+                        time: 3000,
+                        type: "text",
+                        width: "12em",
+                        position: 'bottom'
+                    })
                     return false ;
                 }
             }
@@ -25,10 +31,13 @@ const  mixins = {
         },
         checkVal(val,msg){
             if (val==="") {
-                this.$vux.alert.show({
-                    title: '',
-                    content: `请输入${msg}`
-                });
+                this.$vux.toast.show({
+                    text: `请输入${msg}`,
+                    time: 3000,
+                    type: "text",
+                    width: "8.4em",
+                    position: 'bottom'
+                })
                 return false;
             }
             return true;
@@ -48,18 +57,15 @@ const  mixins = {
         errcode(errcode,message){
             let _this=  this ;
             if (errcode===-101) {
-                _this.$vux.alert.show({
-                    title: '',
-                    content: message,
-                    onHide () {
-                        _this.$router.replace('./login');
-                    }
-                });
+                this.$router.replace('./login');
             }else{
-                _this.$vux.alert.show({
-                    title: '',
-                    content: message
-                });
+                this.$vux.toast.show({
+                    text: message,
+                    time: 3000,
+                    type: "text",
+                    width: "12em",
+                    position: 'bottom'
+                })
             }
         },
         setCookie(c_name,value,expTime){  

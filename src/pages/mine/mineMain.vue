@@ -32,7 +32,7 @@
     		</li>
     		<li>
     			<router-link to='/contact'>
-    				<i class="contact"></i><em>常用联系人</em><x-icon type="ios-arrow-right" size="20"></x-icon>
+    				<i class="contact"></i><em>紧急联系人</em><x-icon type="ios-arrow-right" size="20"></x-icon>
     			</router-link>
     		</li>
     		<li>
@@ -76,16 +76,7 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getInfo();
   			}

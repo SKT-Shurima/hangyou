@@ -60,10 +60,7 @@ export default {
   			info(params).then(res=>{
   				let {errcode,message,content} = res;
       			if (errcode!==0) {
-      				this.$vux.alert.show({
-					  	title: '',
-					  	content: message
-					});
+      				this.errcode(errcode,message);
       			}else{
       				this.detail = content ;
       				let description =  this.detail.descript ;
@@ -78,17 +75,7 @@ export default {
   			if (userInfo) {
   				this.$router.push(`./predatemine?start_id=${this.reqParams.start_id}`);
   			}else{
-  				let _this = this;
-  				this.$vux.confirm.show({
-	  				title:"",
-					content: '请先登录',
-					onCancel () {
-					    
-					},
-					onConfirm () {
-						_this.$router.push('./login');
-					}
-				})
+  				this.$router.push('./login');
   			}
   			
   		}

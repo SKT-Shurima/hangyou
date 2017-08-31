@@ -4,7 +4,7 @@
 	    <div class="container">
 	    	<div class="box">
 	    		<div class="inputBox">
-	    			<i class="phone"></i><input type="text" name="phone" v-model='phone' placeholder="请输入手机号">
+	    			<i class="phone"></i><input type="number" name="phone" v-model='phone' placeholder="请输入手机号" onkeypress="return(/[\d]/.test(String.fromCharCode(event.keyCode)))">
 	    		</div>
 	    		<div class="inputBox">
 	    			<i class="password"></i><input  placeholder="请输入登录密码"  type="text"  v-model="passwd" v-if="visible"  >
@@ -56,10 +56,13 @@ export default {
   				OauthLogin(params).then(res=>{
   					let {errcode,message,content} = res;
 	      			if (errcode!==0) {
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message
-						});
+	      				this.$vux.toast.show({
+		                    text: message,
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom'
+		                });
 	      			}else{
 	      				let userInfo = window.localStorage.userInfo ;
 	      				if (userInfo) {

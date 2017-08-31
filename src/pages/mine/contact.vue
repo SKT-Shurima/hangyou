@@ -1,6 +1,6 @@
 <template>
   <div class="wrap">
-    <x-header :left-options="{backText: ''}">常用联系人</x-header>
+    <x-header :left-options="{backText: ''}">紧急联系人</x-header>
     <div class="box" v-if='info'>
     	<div class="info">
 	    	<ul>
@@ -52,7 +52,8 @@ export default {
   	},
   	methods: {
   		edit(){
-  			this.$router.push(`/editContact?customer_passenger_id=${this.info.customer_passenger_id}`);
+  			let id= this.info.customer_contact_id
+  			this.$router.push(`/editContact?customer_contact_id=${id}`);
   		},
   		getInfo(){
   			let params = {
@@ -77,30 +78,13 @@ export default {
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
 		}else{
-			this.$vux.alert.show({
-			  	title: '',
-			  	content: '请先登录',
-			 	onShow () {
-			  	},
-			 	onHide () {
-			    	_this.$router.replace('./login');
-			  	}
-			})
+			this.$router.replace('./login');
 		}
   	},
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getInfo()
   			}

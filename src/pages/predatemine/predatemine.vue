@@ -56,22 +56,30 @@
   			<ul>
   				<li>
   					<span>成人</span>&nbsp;&nbsp;<em v-show='priceInfo.adult_price-0'>{{priceInfo.adult_price|currency}}</em>/人
-  					<v-number :value='adult_count' @onchange='changeAdultNum'></v-number>
+  					<div class="btn-box">
+						<button @click='adult_count--;' :disabled='adult_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+						<input type="number" name="" disabled  v-model.number='adult_count'>
+						<button @click='adult_count++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+					</div>
 				</li>
   				<li>
   					<span>儿童</span>&nbsp;&nbsp;<em v-show='priceInfo.child_price-0'>{{priceInfo.child_price|currency}}</em>/人&nbsp;&nbsp;不占床位
-  					<v-number @onchange='changeChildNum' :value='child_count'></v-number>
+  					<div class="btn-box">
+						<button @click='child_count--;' :disabled='child_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+						<input type="number" name="" disabled  v-model.number='child_count'>
+						<button @click='child_count++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+					</div>
   				</li>
   				<li>
   					<span>房间</span>&nbsp;&nbsp;单人差<em v-show='(priceInfo.difference-0)&&((adult_count-0)%2)'>{{priceInfo.difference|currency}}</em>
-  					<i v-text=' Math.ceil(adult_count/2)' class="diffCount" v-show='(adult_count-0)%2'></i>
+  					<i v-text=' Math.ceil(adult_count/2)' class="diffCount"></i>
   				</li>
   			</ul>
   		</div>
   	</div>
     <dl class="submit">
     	<dt>
-    		总价：<span> {{totalprice|currency}}</span>
+    		总价：<span> {{(totalprice-0).toFixed(2)|currency}}</span>
     	</dt>
     	<dd @click='chooseSpecial'>
     		下一步
@@ -82,9 +90,6 @@
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
-import XNumber from 'vux/src/components/x-number'
-import Group from 'vux/src/components/group'
-import VNumber from '../../comment/v-number'
 import {reserve} from '../../config/api' 
 export default {
   	data () {
@@ -111,11 +116,12 @@ export default {
 	    		ticket: ""
 	    	},
 	    	totalprice: 0,
-	    	isFirst: true
+	    	isFirst: true,
+	    	max: 0
 	    }
   	},
   	components: {
-    	XHeader,XNumber,Group,VNumber
+    	XHeader
   	},
   	watch: {
   		month(newVal,oldVal){
@@ -137,7 +143,14 @@ export default {
   			if (newVal) {
   				this.isFirst = false;
   			}
-  			
+  		},
+  		adult_count(newVal,oldVal){
+  			this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
+  			this.countPrice();
+  		},
+  		child_count(newVal,oldVal){
+  			this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
+  			this.countPrice();
   		}
   	},
   	methods: {
@@ -291,6 +304,7 @@ export default {
 		},
   		changeAdultNum(val){
   			this.adult_count = val;
+  			this.max = parseInt(this.adult_count/2);
   			this.countPrice();
   		},
   		changeChildNum(val){
@@ -305,7 +319,8 @@ export default {
   				let preBaseInfo = {
   					adult_count: this.adult_count,
   					child_count: this.child_count,
-  					room_count: this.room_count,
+  					room_count: Math.ceil(this.adult_count/2),
+  					difference: this.priceInfo.difference,
   					start_id: this.reqParams.start_id,
   					date_price_id: this.date_price_id,
   					totalprice: this.totalprice,
@@ -316,22 +331,28 @@ export default {
   				this.$router.push(`./chooseSpecial?start_id=${this.reqParams.start_id}`);
   			}else{
   				if (!date_price_id) {
-  					this.$vux.alert.show({
-					  	title: '',
-					  	content: '该日期不可选',
-					})
-  				}else{
-  					this.$vux.alert.show({
-					  	title: '',
-					  	content: '请完善信息',
-					})
+					this.$vux.toast.show({
+	                    text: '该日期不可选',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom',
+	                })
+  				}else if (!this.adult_count) {
+					this.$vux.toast.show({
+	                    text: '请选择人数',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                })
   				}
   			}
   		},
   		countPrice(){
   			this.totalprice = this.priceInfo.adult_price*this.adult_count+this.priceInfo.child_price*this.child_count;
   			if ((this.adult_count-0)%2) {
-  				this.totalprice += this.priceInfo.difference * Math.ceil(this.adult_count/2);
+  				this.totalprice += this.priceInfo.difference-0;
   			}
   		}
 	},
@@ -346,16 +367,7 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				sessionStorage.preBaseInfo = null;
 	  			this.month =  new Date().getMonth()+1;
@@ -511,9 +523,41 @@ export default {
 			}
 		}	
 	}
+	.btn-box{
+		float: right;
+		width: 82px;
+		height: 20px;
+		.vux-x-icon{
+			fill: #999;
+		}
+		button,input{
+			float: left;
+		}
+		button{
+			display: inline-block;
+			width: 20px;
+			height: 20px;
+			border-radius: 2px;
+			outline: none;
+			border: none;
+			background-color: #eee;
+		}
+		input{
+			display: inline-block;
+			width: 42px;
+			height: 20px;
+			font-size: 14px;
+			color: #333;
+			line-height: 20px;
+			border: none;
+			outline: none;
+			text-align: center;
+			background-color: #fff;
+		}
+	}
 	.submit{
 		position: fixed;
-		z-index: 99999;
+		z-index: 99;
 		bottom: 0px;
 		width: 100%;
 		height: 48px;

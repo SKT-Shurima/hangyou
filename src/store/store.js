@@ -7,9 +7,6 @@ Vue.use(Vuex)
 
 // 应用初始状态
 const state = {
-    preBaseInfo: null,
-    special:null,
-    passenger: []
 }
 
 // 定义所需的 mutations

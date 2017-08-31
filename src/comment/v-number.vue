@@ -29,7 +29,6 @@
 		      	type: Number,
 		      	required:false,
 		    },
-
 		},
 		 watch: {
 		    currentValue (newValue, old) {

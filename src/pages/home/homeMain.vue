@@ -1,10 +1,11 @@
 <template>	
 	<div class="headWrap">
 	<!-- 头部轮播图 -->
-		<div class="header">
+		<div class="header" >
 			<div class="search">
-				<icon type="search"></icon>
-				<router-link v-bind:to="'search'" class='inputArea'>请输入目的地</router-link>
+				<router-link v-bind:to="'search'" class='inputArea'>
+					<icon type="search"></icon>请输入目的地
+				</router-link>
 			</div>
 			<swiper auto loop :interval=3000  :list='bannerList' dots-position='center' :show-desc-mask='false'  :aspect-ratio='350/750'></swiper>	
 		</div>
@@ -138,10 +139,13 @@ import {banner,hot,pushCoupon} from '../../config/api'
 				hot().then(res=>{
 					let {errcode,message,content} = res;
 	      			if (errcode!==0) {
-	      				this.$vux.alert.show({
-						  	title: '',
-						  	content: message
-						});
+	      				 this.$vux.toast.show({
+		                    text: message,
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom'
+		                });
 	      			}else{
 	      				let arr = [];
 	      				for (let i = 0; i < content.length ; i+=3) {
@@ -218,6 +222,8 @@ import {banner,hot,pushCoupon} from '../../config/api'
 					color: #fff;
 				}
 				.inputArea{
+					display: inline-block;
+					width: 100%;
 					@include sc(16px,#fff);
 				}
 			}

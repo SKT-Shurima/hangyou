@@ -1,7 +1,7 @@
 <template>
   <div class="wrap">
     <x-header :left-options="{backText: ''}">同目的地</x-header>
-	<div class="container">
+	<div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="0" >
 		<ul>
 			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.start_id)'>
 				<dl class="list">
@@ -19,7 +19,7 @@
 		      	</dl>
 			</li>
 		</ul>
-		<div class="noMore" v-show='goodsList.length'>
+		<div class="noMore">
 			没有更多了
 		</div>
 	</div>
@@ -36,13 +36,22 @@ export default {
 	    return {
 	    	keyword: "",
 	    	goodsList:[],
-	    	page: 1
+	    	page: 1,
+	    	busy: false
 	    }
   	},
   	components: {
    		XHeader,Icon,Flexbox,FlexboxItem
   	},
   	methods: {
+  		loadMore: function() {
+		    this.busy = true;
+		    let _this = this;
+			setTimeout(() => {
+		       	_this.page++;
+		       	_this.getList();
+		      }, 1000);
+		},
 	    getList(){
 	    	let params = {
 	    		destination_id: this.reqParams.destination_id,
@@ -51,12 +60,15 @@ export default {
 	    	getDes(params).then(res=>{
 	    		let {errcode,message,content} = res;
 	    		if (errcode!==0) {
-      				this.$vux.alert.show({
-					  	title: '',
-					  	content: message
-					});
+      				 this.$vux.toast.show({
+	                    text: message,
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                })
       			}else{
-      				this.goodsList = content;
+      				this.goodsList = this.goodsList.concat(content);
       			}
 	    	})
 	    },

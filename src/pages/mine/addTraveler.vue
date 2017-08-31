@@ -17,7 +17,7 @@
       	<x-input title="身份证号"  placeholder="请输入您的身份证号" placeholder-align='right'  text-align='right' v-model='card'></x-input>
     </group>
     <p　class='tips'>
-    	<i></i>护照请在出发日期前自行办理，如因用户自身原因（没有护照后者不及时办理护照签证等问题）导致无法成行，后果由用户自行承担，平台概不负责。注：自助办理护照与签证用户，购买产品时请预留足够的时间办理护照，目的地为非免签＆落地签国家及地区，请预留足够时间办理签证。
+    	<i></i>护照请在出发日期前自行办理,如因用户自身原因（没有护照后者不及时办理护照签证等问题）导致无法成行,后果由用户自行承担,平台概不负责。注：自助办理护照与签证用户,购买产品时请预留足够的时间办理护照,目的地为非免签＆落地签国家及地区,请预留足够时间办理签证。
     </p>
     <div class="submit">
     	<button :disabled='!(name&&surname&&lname&&birthday&&sex!==""&&card)' class="btn" :class='{"disabled":!(name&&surname&&lname&&birthday&&sex!==""&&card)}' @click='ensure'>确定</button>
@@ -116,10 +116,13 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				let _this = this;
-      				this.$vux.alert.show({
-					  	title: '',
-					  	content: message,
-					  	onHide(){
+      				this.$vux.toast.show({
+	                    text: message,
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom',
+	                    onHide(){
 					  		let storePassenger = []
 				  			if (sessionStorage.passenger) {
 				  				storePassenger = JSON.parse(sessionStorage.passenger);
@@ -129,8 +132,7 @@ export default {
 				  			sessionStorage.passenger = JSON.stringify(storePassenger);
 					  		_this.$router.replace('/completeInfo');
 					  	}
-					});
-					
+	                });
       			}
 			})
     	},
@@ -141,7 +143,7 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				let _this = this;
-      				this.$vux.alert.show({
+      				this.$vux.toast.show({
 					  	title: '',
 					  	content: message,
 					  	onHide(){
@@ -163,6 +165,7 @@ export default {
     		let card = this.checkVal(this.card,"身份证号");
     		let regIdCard=/^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[Xx])$)$/;
     		let cardBol = regIdCard.test(this.card);
+    		console.log(name,lname,cardBol,card)
     		if (name&&surname&&lname&&cardBol&&card) {
     			let birthArr =  this.birthday.split('-');
     			let birth = parseInt((new Date(birthArr[0],birthArr[1]-1,birthArr[2]).getTime()/1000));
@@ -178,15 +181,38 @@ export default {
     			if (this.reqParams.customer_passenger_id) {
     				params.customer_passenger_id = this.reqParams.customer_passenger_id ;
     				this.edit(params);
+    				return false;
     			}
     			if(this.reqParams.addTraveler){
     				this.add(params);
+    				return false;
     			}
-    		}else{
-    			this.$vux.alert.show({
-				  	title: '',
-				  	content: '请输入正确信息'
+    			addPassenger(params).then(res=>{
+					let {errcode,message,content} = res;
+	      			if (errcode!==0) {
+	      				this.errcode(errcode,message);
+	      			}else{
+	      				let _this = this;
+	      				this.$vux.toast.show({
+		                    text: message,
+		                    time: 3000,
+		                    type: "text",
+		                    width: "12em",
+		                    position: 'bottom',
+		                    onHide(){
+						  		_this.$router.back(-1);
+						  	}
+		                });
+	      			}
 				})
+    		}else{
+    			this.$vux.toast.show({
+                    text: `请输入正确信息`,
+                    time: 3000,
+                    type: "text",
+                    width: "12em",
+                    position: 'bottom'
+                })
     		}
     	}
 	},

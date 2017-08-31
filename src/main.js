@@ -9,15 +9,14 @@ import store from './store/store';
 import { routerMode } from './config/env';
 import './config/rem';
 import FastClick from 'fastclick';
-import AlertPlugin from 'vux/src/plugins/alert'
 import ConfirmPlugin from 'vux/src/plugins/confirm'
 import LoadingPlugin from 'vux/src/plugins/loading'
 import Toast from 'vux/src/plugins/toast'
+import infiniteScroll from 'vue-infinite-scroll'
+Vue.use(infiniteScroll)
 Vue.use(LoadingPlugin)
 Vue.use(ConfirmPlugin)
-Vue.use(AlertPlugin)
 Vue.use(Toast)
-
 
 
 if ('addEventListener' in document) {

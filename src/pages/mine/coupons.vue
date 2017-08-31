@@ -2,7 +2,7 @@
   	<div class="wrap">
     	<x-header :left-options="{backText: ''}">优惠券</x-header>
     	<div class="container">
-    		<ul>
+    		<ul v-if='couponList.length'>
     			<li class="list" v-for='(item,index) in couponList' :key='index'>
     				<dl>
     					<dt class="border-right-1px">
@@ -12,21 +12,22 @@
     					</dt>
     					<dd>
     						<div class="name">优惠抵扣</div>
-    						<div class="date">{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
-    						<i class="del" @click='del(item.customer_coupon_id)'>
-    							<x-icon type="ios-close-empty" size="40"></x-icon>	
-    						</i>
+    						<div class="date" v-if='item.type==="2"'>{{item.date_start*1000|dateStyle}}至{{item.date_end*1000|dateStyle}}有效</div>
+							<div class="date" v-else>{{item.date_add*1000|dateStyle}}至{{(item.date_add*1000+item.valid_period*86400*1000)|dateStyle}}有效</div>
     					</dd>
     				</dl>
     			</li>
     		</ul>
+    		<div v-else class="no-coupon">
+    			暂无优惠券
+    		</div>
     	</div>
   	</div>
 </template>
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header' 
-import {myCoupon,delCoupon} from '../../config/api'
+import {myCoupon} from '../../config/api'
 export default {
   	data () {
 	    return {
@@ -49,36 +50,6 @@ export default {
       				this.couponList = content ;
       			}
   			})
-  		},
-  		del(id){
-  			let _this = this;
-  			this.$vux.confirm.show({
-  				title:"",
-				content: '是否删除该优惠券？',
-				onCancel () {
-				    return false;
-				},
-				onConfirm () {
-					let params ={
-		  				access_token: _this.userInfo.access_token,
-		  				customer_coupon_id: id
-		  			};
-		  			delCoupon(params).then(res=>{
-		  				let {errcode,message} = res;
-		      			if (errcode!==0) {
-		      				_this.errcode(errcode,message);
-		      			}else{
-		      				_this.$vux.alert.show({
-							  	title: '',
-							  	content: message,
-							  	onHide(){
-							  		_this.getCoupon();
-							  	}
-							});
-		      			}
-		  			})
-				}
-			});
   		}
 	},
   	created(){
@@ -90,16 +61,7 @@ export default {
   	mounted(){
   		this.$nextTick(()=>{
   			if (!this.userInfo.access_token) {
-  				let _this = this;
-				this.$vux.alert.show({
-				  	title: '',
-				  	content: '请先登录',
-				 	onShow () {
-				  	},
-				 	onHide () {
-				    	_this.$router.replace('./login');
-				  	}
-				})
+  				this.$router.replace('./login');
   			}else{
   				this.getCoupon();
   			}
@@ -170,16 +132,15 @@ export default {
 				line-height: 28px;
 				@include sc(13px,$hint_color);
 			}
-			.del{
-				position: absolute;
-				top: 6px;
-				right: 6px;
-				fill: $hint_color;
-			}
 		}
 		dt,dd{
 			float: left;
 			position: relative;
 		}
+	}
+	.no-coupon{
+		margin: 20px auto;
+		text-align: center;
+		@include sc(16px,$hint_color);
 	}
 </style>

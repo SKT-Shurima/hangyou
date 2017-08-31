@@ -144,12 +144,7 @@ export const getContact = params =>{
 	params = trans(params);
 	return axios.get(`${base}/userAction/getContact?${params}`).then(res=>res.data);
 }
-//  删除优惠券
-export const delCoupon = params =>{
-	params = trans(params);
-	return axios.get(`${base}/userAction/delCoupon?${params}`).then(res=>res.data);
-}
-// 编辑常用联系人
+// 编辑紧急联系人
 export const editContact = params =>{
 	params = trans(params);
 	return axios.get(`${base}/userAction/editContact?${params}`).then(res=>res.data);
