@@ -123,13 +123,9 @@ export default {
 	                    width: "12em",
 	                    position: 'bottom',
 	                    onHide(){
-					  		let storePassenger = []
-				  			if (sessionStorage.passenger) {
-				  				storePassenger = JSON.parse(sessionStorage.passenger);
-				  			}
-				  			let addArr = [content];
-				  			storePassenger = storePassenger.concat(addArr);
-				  			sessionStorage.passenger = JSON.stringify(storePassenger);
+				  			let passenger = JSON.parse(sessionStorage.passenger);
+				  			passenger[_this.reqParams.chooseIndex] = content;
+				  			sessionStorage.passenger = JSON.stringify(passenger);
 					  		_this.$router.replace('/completeInfo');
 					  	}
 	                });
@@ -165,7 +161,6 @@ export default {
     		let card = this.checkVal(this.card,"身份证号");
     		let regIdCard=/^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[Xx])$)$/;
     		let cardBol = regIdCard.test(this.card);
-    		console.log(name,lname,cardBol,card)
     		if (name&&surname&&lname&&cardBol&&card) {
     			let birthArr =  this.birthday.split('-');
     			let birth = parseInt((new Date(birthArr[0],birthArr[1]-1,birthArr[2]).getTime()/1000));
@@ -244,7 +239,7 @@ export default {
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
 .wrap{
-	height: 100vh;
+	min-height: 100vh;
 }
 .overwrite-title-demo {
   margin-top: 5px;

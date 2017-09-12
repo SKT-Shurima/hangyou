@@ -3,18 +3,18 @@
     <x-header :left-options="{backText: ''}">同目的地</x-header>
 	<div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="0" >
 		<ul>
-			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.start_id)'>
+			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.goods_id)'>
 				<dl class="list">
 		      		<dt>
 		      			<div class="name" v-text='item.name'></div>
 		      			<div class="detail" v-text='item.explain'></div>
 		      			<div class="price">
-		      				<span><strong>{{item.price-0|currency}}</strong>/人</span>起
-		      				<em>{{item.market_price-0|currency}}/人</em> 
+		      				<span><strong>{{(item.price-0).toFixed(2)|currency}}</strong>/月/人起</span>
+		      				<em>{{(item.market_price-0).toFixed(2)|currency}}/人</em> 
 		      			</div>
 		      		</dt>
 		      		<dd>
-		      			<img :src="item.images">
+		      			<img :src="item.images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
 		      		</dd>
 		      	</dl>
 			</li>
@@ -37,7 +37,8 @@ export default {
 	    	keyword: "",
 	    	goodsList:[],
 	    	page: 1,
-	    	busy: false
+	    	busy: false,
+	    	noMore: false
 	    }
   	},
   	components: {
@@ -47,14 +48,20 @@ export default {
   		loadMore: function() {
 		    this.busy = true;
 		    let _this = this;
+		    if (this.noMore) {
+		    	return;
+		    }
 			setTimeout(() => {
 		       	_this.page++;
 		       	_this.getList();
 		      }, 1000);
 		},
 	    getList(){
+	    	this.$vux.loading.show({
+				text: 'Loading'
+			});
 	    	let params = {
-	    		destination_id: this.reqParams.destination_id,
+	    		address_id: this.reqParams.address_id,
 	    		page: this.page
 	    	}
 	    	getDes(params).then(res=>{
@@ -68,12 +75,18 @@ export default {
 	                    position: 'bottom'
 	                })
       			}else{
-      				this.goodsList = this.goodsList.concat(content);
+      				this.busy = false;
+      				if (content.length) {
+      					this.goodsList = this.goodsList.concat(content);
+      				}else{
+      					this.noMore= true;
+      				}
+      				this.$vux.loading.hide();
       			}
 	    	})
 	    },
 	    checkDetail(id){
-	    	this.$router.push(`./goodDetail?start_id=${id}`);
+	    	this.$router.push(`./goodDetail?goods_id=${id}`);
 	    },
 	},
   	created(){
@@ -93,7 +106,7 @@ export default {
 		position: fixed;
 		top: 0px;
 		left: 0px;
-		z-index: 999999;
+		z-index: 99;
 	}
 	.vux-x-icon.vux-x-icon-ios-close-empty{
 		position: absolute;
@@ -171,28 +184,26 @@ export default {
 			}
 			dt{
 				padding-left: 12px;
-				padding-right: 5px;
+				height: 85px;
     			-webkit-box-flex: 1;
 			}
 			.name{
 				@include sc(15px,#000);
-				line-height: 22px;
 			    @include ellipsis(1);
-			    margin-bottom: 12px;
+			    margin-bottom: 5px;
 			}
 			.detail{
-				line-height: 16px;
+				line-height: 20px;
+				height: 40px;
 			    @include ellipsis(2);
-				@include sc(13px,$detail_color);
+				@include sc(12px,$detail_color);
 			}
 			.price{
-				margin-top: 8px;
-				@include sc(14px,$title_color)
-				span{
-					padding-right: 6px;
-				}
+				margin-top: 5px;
+				line-height: 16px;
+				@include sc(12px,$title_color);
 				strong {
-					@include sc(16px,$price_color);
+					@include sc(14px,$price_color);
 				}
 				em{
 					margin-left: 6px;
@@ -206,7 +217,7 @@ export default {
 			    overflow: hidden;
 			    width: 125px;
 			    height: 85px;
-			    margin: 0px 16px;
+			    margin: 0px .8em;
 			    img{
 			    	width: 100%;
 			    	height: 100%;

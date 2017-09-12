@@ -146,7 +146,7 @@ export default {
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
 .wrap{
-	height: 100vh;
+	min-height: 100vh;
 }
 .overwrite-title-demo {
   margin-top: 5px;

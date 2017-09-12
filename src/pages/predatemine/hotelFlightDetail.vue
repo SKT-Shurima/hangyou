@@ -2,23 +2,23 @@
   <div class="wrap">
     <x-header :left-options="{backText: ''}">酒店航班详情</x-header>
   	<div class="container">
-		<div class="hotelInfo">
+		<div class="hotelInfo" v-if='hotel.length'>
 			<h1>酒店信息</h1>
 			<dl v-for='(item,index) in hotel' :key='index'>
 				<dt class="date">
-					{{item.start_date*1000|dateStyle}}至{{item.end_date*1000|dateStyle}}
+					{{(date-0+(item.start_day-1)*86400)*1000|dateStyle}}({{item.start_time}})至{{(date-0+(item.end_day-1)*86400)*1000|dateStyle}}({{item.end_time}})
 				</dt>
 				<dd class="name" v-text='item.name'></dd>
 				<dd class="image">
-	  				<img :src="item.images">
+	  				<img :src="item.images" @load='successLoadImg' @error='errorLoadImg' class="default-image">
 	  			</dd>
 			</dl>
 		</div>
-		<div class="flightInfo">
+		<div class="flightInfo" v-if='flight.length'>
 			<h1>航班信息</h1>
 			<div class="go" v-for='(item,index) in flight' :key='index'>
 				<dl>
-					<dt class="title">{{item.start_station}}-{{item.end_station}}{{item.is_return==="0"?"（往）":"（返）"}}</dt>
+					<dt class="title">{{item.start_station}}-{{item.end_station}}</dt>
 					<dd class="site">
 						<flexbox>
 							<flexbox-item>
@@ -32,7 +32,7 @@
 							</flexbox-item>
 							<flexbox-item>
 								<div class="airport" v-text='item.end_airport'></div>
-								<div class="time" v-text='item.end_time'><em v-if='item.end_extra-0'>+1</em></div>
+								<div class="time">{{item.end_time}}<em v-if='item.end_extra-0'>+1</em></div>
 							</flexbox-item>
 						</flexbox>
 					</dd>
@@ -45,7 +45,7 @@
 						<th>所乘机型</th>
 					</tr>
 					<tr>
-						<td>{{item.start_date*1000|dateStyle}}</td>
+						<td>{{(date-0+(item.flight_day-1)*86400)*1000|dateStyle}}</td>
 						<td v-text='item.flight_number'></td>
 						<td v-text='item.airline_company'></td>
 						<td v-text='item.model'></td>
@@ -74,54 +74,10 @@ export default {
     	XHeader,Flexbox,FlexboxItem
   	},
   	methods: {
-  		initHotelFlight(hotel,flight){
-  			var init_date =  this.reqParams.date-0;
-  			hotel.sort(compare('sort'));
-			flight.sort(compare('sort'));
-			var extra = new Array();
-			hotel.forEach(function(value,index,array){
-				extra[index] = value['stay_day'];
-			});
-			//获取飞机到达时间
-			var arrival_day = 0;
-			flight.forEach(function(value,index,array){
-				if(value['is_return'] == 0){
-					arrival_day = value['end_extra'];
-				}
-				flight[index]['start_date'] = init_date+value['start_extra']*86400;
-			});
-			//酒店开始入住时间
-			var hotel_init_date = init_date+86400*arrival_day;
-			for(var i = 0;i<hotel.length;i++){
-				var k = i;
-				var date_start = hotel_init_date;
-				var date_end = hotel_init_date;
-		
-				while(k >= 0){
-					if(k-1 >= 0){
-						date_start += 86400*hotel[k-1]['stay_day'];
-					}
-					date_end += 86400*hotel[k]['stay_day'];
-					k--;
-				}
-				hotel[i]['start_date'] = date_start;
-				hotel[i]['end_date'] = date_end;
-			}
-			function compare(property){
-			    return function(a,b){
-			        var value1 = a[property];
-			        var value2 = b[property];
-			        return value1 - value2;
-			    }
-			};
-			this.hotel = hotel;
-			this.flight = flight;
-			this.$vux.loading.hide();
-		},
 	    getDetail(){
 	    	let params = {
 	    		access_token: this.userInfo.access_token,
-	    		start_id: this.reqParams.start_id,
+	    		goods_id: this.reqParams.goods_id,
 	    		order_id:""
 	    	}
 	    	hotelFlightDetail(params).then(res=>{
@@ -129,7 +85,9 @@ export default {
       			if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				this.initHotelFlight(content.hotel,content.flight);
+      				this.hotel = content.hotel?content.hotel:this.hotel;
+					this.flight = content.flight?content.flight:this.flight;
+					this.$vux.loading.hide();
       			}
 	    	})
 	    }

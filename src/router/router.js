@@ -18,6 +18,7 @@ import orderList from '../pages/mine/orderList'
 import orderDetail from '../pages/mine/orderDetail'
 import travelers from '../pages/mine/travelers'
 import addTraveler from '../pages/mine/addTraveler'
+import checkTraveler from '../pages/mine/checkTraveler'
 import coupons from '../pages/mine/coupons'
 import editContact from '../pages/mine/editContact'
 import contact from '../pages/mine/contact'
@@ -74,6 +75,9 @@ const path = [
     },{
         path: '/addTraveler',
         component: addTraveler
+    },{
+        path: '/checkTraveler',
+        component: checkTraveler
     },{
         path: '/msg',
         component: msg

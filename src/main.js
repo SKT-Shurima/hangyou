@@ -38,6 +38,7 @@ Vue.use(vueg,router);
 // 过滤器
 Vue.filter('currency',val=> {
     if (val !== "") {
+      val = (val-0).toFixed(2); 
         return `￥${val}`;
     } 
 });
@@ -73,14 +74,26 @@ router.afterEach((to, from, next) => {
       window.location.href = '/index.html?t=' + timestamp + '#' + to.fullPath
     }
     let openid = mixins.methods.getCookie("openid");
-    if (!openid) {
-        const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
-        let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
-            window.location.href = href;
-    }
+    // if (!openid) {
+    //     const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
+    //     let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
+    //         window.location.href = href;
+    // }
 });
 
-
+Vue.prototype.successLoadImg = function(event) {
+  if (event.target.complete == true) {
+    event.target.classList.remove("default-image");;
+    var imgParentNode = event.target.parentNode;
+    if(imgParentNode.classList.contains('show-img')==true){
+      imgParentNode.style.background = "#000";
+    }
+  }
+};
+Vue.prototype.errorLoadImg = function(event) {
+    event.target.src = '';
+    event.target.classList.add("default-image");;
+};
 new Vue({
   el: '#app',
   router,

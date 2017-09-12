@@ -2,21 +2,21 @@
   <div class="wrap">
     <x-header :left-options="{backText: ''}">预定</x-header>
   	<div class="container">
-  		<div class="travelInfo">
-  			<h1>酒店信息<a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
+  		<div class="travelInfo" v-if='hotel.length||flight.length'>
+  			<h1 v-if='hotel.length'>酒店信息<a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
   			<dl v-for='(item,index) in hotel' :key='index'>
   				<dt class="date">
-  					{{item.start_date*1000|dateStyle}}至{{item.end_date*1000|dateStyle}}
+  					{{(thisDay-0+(item.start_day-1)*86400)*1000|dateStyle}}({{item.start_time}})至{{(thisDay-0+(item.end_day-1)*86400)*1000|dateStyle}}({{item.end_time}})
   				</dt>
   				<dd class="name" v-text='item.name'></dd>
   			</dl>
-  			<h1 style="margin-top:10px;">航班信息</h1>
+  			<h1 style="margin-top:10px;" v-if='flight.length'>航班信息</h1>
   			<dl v-for='(item,index) in flight' :key='index'>
   				<dt class="date">
-  					{{item.start_date*1000|dateStyle}}
+  					{{(thisDay+(item.flight_day-1)*86400)*1000|dateStyle}}
   				</dt>
   				<dd class="site">
-  					{{item.start_station}}（{{item.start_time}}）<i class="airIcon"></i>{{item.end_station}}（{{item.end_time}}）<em v-if='item.is_return-0'>+1</em>
+  					{{item.start_station}}({{item.start_time}})<i class="airIcon"></i>{{item.end_station}}({{item.end_time}})<em v-if='item.end_extra-0'>+1</em>
   				</dd>
   			</dl>
   		</div>
@@ -117,7 +117,8 @@ export default {
 	    	},
 	    	totalprice: 0,
 	    	isFirst: true,
-	    	max: 0
+	    	max: 0,
+	    	thisDay: 0
 	    }
   	},
   	components: {
@@ -155,14 +156,14 @@ export default {
   	},
   	methods: {
   		checkDetail(){
-  			let start_id = this.reqParams.start_id ;
+  			let goods_id = this.reqParams.goods_id ;
   			let date =  parseInt(new Date(this.year,this.month-1,this.day).getTime()/1000);
-  			this.$router.push(`/hotelFlightDetail?start_id=${start_id}&date=${date}`);
+  			this.$router.push(`/hotelFlightDetail?goods_id=${goods_id}&date=${date}`);
   		},
   		getInfo(){
   			let params = {
   				access_token: this.userInfo.access_token,
-  				start_id: this.reqParams.start_id
+  				goods_id: this.reqParams.goods_id
   			}
   			reserve(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -171,13 +172,16 @@ export default {
       			}else{
       				this.date_price = content.date_price ;
       				this.initDate();
-      				this.initHotelFlight(content.hotel,content.flight);
+      				this.hotel = content.hotel?content.hotel:this.hotel;
+					this.flight = content.flight?content.flight:this.flight;
+					this.$vux.loading.hide();
       			}
   			})
   		},
   		initDate(){
   			let year = this.year,month = this.month ;
   			let firstDay = new Date(year,month-1).getDay();
+  			this.thisDay = parseInt(new Date(this.year,this.month-1,this.day)/1000);
   			this.dateList = [] ;
   			let arr = [];
   			for(let i = 0 ; i < firstDay ; i++){
@@ -253,50 +257,6 @@ export default {
   			}
   			this.dateList =  dateArr ;
   		},
-  		initHotelFlight(hotel,flight){
-  			var init_date =  parseInt(new Date(this.year,this.month-1,this.day).getTime()/1000);
-  			hotel.sort(compare('sort'));
-			flight.sort(compare('sort'));
-			var extra = new Array();
-			hotel.forEach(function(value,index,array){
-				extra[index] = value['stay_day'];
-			});
-			//获取飞机到达时间
-			var arrival_day = 0;
-			flight.forEach(function(value,index,array){
-				if(value['is_return'] == 0){
-					arrival_day = value['end_extra'];
-				}
-				flight[index]['start_date'] = init_date+value['start_extra']*86400;
-			});
-			//酒店开始入住时间
-			var hotel_init_date = init_date+86400*arrival_day;
-			for(var i = 0;i<hotel.length;i++){
-				var k = i;
-				var date_start = hotel_init_date;
-				var date_end = hotel_init_date;
-		
-				while(k >= 0){
-					if(k-1 >= 0){
-						date_start += 86400*hotel[k-1]['stay_day'];
-					}
-					date_end += 86400*hotel[k]['stay_day'];
-					k--;
-				}
-				hotel[i]['start_date'] = date_start;
-				hotel[i]['end_date'] = date_end;
-			}
-			function compare(property){
-			    return function(a,b){
-			        var value1 = a[property];
-			        var value2 = b[property];
-			        return value1 - value2;
-			    }
-			};
-			this.hotel = hotel;
-			this.flight = flight;
-			this.$vux.loading.hide();
-		},
 		chooseDate(item){
 			this.day = item.date;
 			this.date_price_id = item.date_price_id;
@@ -314,23 +274,47 @@ export default {
   		chooseSpecial(){
   			let date_price_id =  this.date_price_id.trim();
   			let count = this.adult_count-0;
-  			if (date_price_id!==""&&count) {
-  				let len = this.flight.length-1;
+  			let ticket = this.priceInfo.ticket - 0;
+  			if (date_price_id!==""&&count&&ticket) {
   				let preBaseInfo = {
   					adult_count: this.adult_count,
   					child_count: this.child_count,
   					room_count: Math.ceil(this.adult_count/2),
   					difference: this.priceInfo.difference,
-  					start_id: this.reqParams.start_id,
+  					goods_id: this.reqParams.goods_id,
   					date_price_id: this.date_price_id,
-  					totalprice: this.totalprice,
-  					start_time: this.flight[0].start_date ,
-  					end_time: this.flight[len].start_date+ this.flight[0].end_extra*86400
+  					totalprice: this.totalprice
   				}
+  				let hotel = this.hotel;
+  				let goods_hotel = [];
+  				for(let i = 0;i<hotel.length;i++){
+  					goods_hotel.push(hotel[i].goods_hotel_id);
+  				}
+  				if (goods_hotel.length) {
+  					preBaseInfo.goods_hotel = goods_hotel;
+  				}
+  				let goods_flight = [];
+  				let flight =  this.flight;
+  				for(let i = 0;i<flight.length;i++){
+  					goods_flight.push(flight[i].goods_flight_id);
+  				}
+  				if (goods_flight.length) {
+  					preBaseInfo.goods_flight = goods_flight;
+  				}
+  				preBaseInfo.date = this.thisDay;
+  				preBaseInfo.travel_days = this.reqParams.travel_days;
   				sessionStorage.preBaseInfo = JSON.stringify(preBaseInfo);
-  				this.$router.push(`./chooseSpecial?start_id=${this.reqParams.start_id}`);
+  				this.$router.push(`./chooseSpecial?goods_id=${this.reqParams.goods_id}`);
   			}else{
-  				if (!date_price_id) {
+  				if (!ticket) {
+  					this.$vux.toast.show({
+	                    text: '该日期已售罄',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom',
+	                })
+  				}else if (!date_price_id) {
 					this.$vux.toast.show({
 	                    text: '该日期不可选',
 	                    time: 3000,
@@ -358,6 +342,9 @@ export default {
 	},
 	created(){
 		sessionStorage.preBaseInfo = null;
+		let emptyArr = [];
+		sessionStorage.passenger = JSON.stringify(emptyArr);
+		sessionStorage.special = JSON.stringify(emptyArr);
   		this.reqParams = this.getHashReq();
   		let userInfo =  localStorage.userInfo;
 		if (userInfo) {

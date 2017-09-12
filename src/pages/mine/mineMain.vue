@@ -3,13 +3,8 @@
     	<div class="infoBox">
     		<img src="../../images/mine/bg@3x.png" width="100%">
     		<div class="icon">
-    			<router-link to='/setting'>
-    				<i class="setting"></i>	
-    			</router-link>
-    			<router-link to='/msg'>
-    				<i class="msg"></i>
-    			</router-link>
-    			
+				<i class="setting" @click='jump("setting")'></i>
+				<i class="msg" @click='jump("msg")'></i>
     		</div>
     		<div class="avater">
     			<!-- <img :src='userInfo.avater'> -->
@@ -53,6 +48,9 @@ export default {
 	    }
   	},
   	methods: {
+  		jump(path){
+  			this.$router.push(`./${path}`);
+  		},
   		getInfo(){
   			let params = {
   				access_token:  this.userInfo.access_token
@@ -63,6 +61,7 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				this.userInfo = content;
+      				this.$vux.loading.hide();
       			}
   			})
   		}
@@ -79,6 +78,9 @@ export default {
   				this.$router.replace('./login');
   			}else{
   				this.getInfo();
+  				this.$vux.loading.show({
+					text: 'Loading'
+				});
   			}
   		})
   	}
@@ -88,7 +90,7 @@ export default {
 @import '../../style/mixin.scss';
 .wrap{
 	width: 100%;
-	height: 100vh;
+	min-height: 100vh;
 }
 .infoBox{
 	position: relative;

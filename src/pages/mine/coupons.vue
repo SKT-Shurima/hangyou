@@ -48,6 +48,7 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				this.couponList = content ;
+      				this.$vux.loading.hide();
       			}
   			})
   		}
@@ -64,6 +65,9 @@ export default {
   				this.$router.replace('./login');
   			}else{
   				this.getCoupon();
+  				this.$vux.loading.show({
+					text: 'Loading'
+				});
   			}
   		})
   	}
@@ -72,7 +76,7 @@ export default {
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
 .wrap{
-	height: 100vh;
+	min-height: 100vh;
 }
 	.container{
 		position: fixed;
@@ -80,7 +84,7 @@ export default {
 		width: 100%;
 		height: 100%;
 		overflow-y: scroll;
-		padding: 0px 15px;
+		padding: 0px 15px  100px;
 	}
 	.list{
 		margin-top: 10px;

@@ -7,20 +7,42 @@
 		</div>
 		<span class="searchBtn" @click='searchFn'>搜索</span>
 	</x-header>
-	<div class="container">
+	<div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="10" :infinite-scroll-immediate-check='false'>
+		<div class="drop-wrap" :style="{'height':dropBol?'0px':'auto'}">
+			<div class="drop-box">
+				<dl>
+					<dt>旅行天数</dt>
+					<dd>
+						<span @click='day=item.day' v-for='(item,index) in days' :class='{"is-tab":item.day===day}'>{{item.day?item.day+'天':'全部'}}</span>
+					</dd>
+				</dl>
+				<dl>
+					<dt>目的地</dt>
+					<dd>
+						<span @click='keyword=item.name' v-for='(item,index) in areas' :class='{"is-tab":item.name===keyword}'>{{item.name?item.name:'全部'}}</span>
+					</dd>
+				</dl>
+				<div class="btn-box">
+					<button @click='searchFn'>确定</button>
+				</div>
+			</div>
+		</div>
+		<div class="drop-icon">
+			<i :class="{'open':dropBol}" @click='dropBol=!dropBol'><x-icon type="ios-arrow-up" size="20"></x-icon></i>
+		</div>
 		<ul>
-			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.start_id)'>
+			<li v-for='(item,index) in goodsList' :key='index' @click='checkDetail(item.goods_id)'>
 				<dl class="list">
 		      		<dt>
 		      			<div class="name" v-text='item.name'></div>
 		      			<div class="detail" v-text='item.explain'></div>
 		      			<div class="price">
-		      				<span><strong>{{item.price-0|currency}}</strong>/人</span>起
-		      				<em>{{item.market_price-0|currency}}/人</em> 
+		      				<span><strong>{{(item.price-0).toFixed(2)|currency}}</strong>/月/人起</span>
+		      				<em>{{(item.market_price-0).toFixed(2)|currency}}/月/人起</em> 
 		      			</div>
 		      		</dt>
 		      		<dd>
-		      			<img :src="item.images">
+		      			<img :src="item.images" @load='successLoadImg' @error='errorLoadImg' class="default-image">
 		      		</dd>
 		      	</dl>
 			</li>
@@ -41,16 +63,44 @@ export default {
   	data () {
 	    return {
 	    	keyword: "",
-	    	goodsList:[]
+	    	goodsList:[],
+	    	page: 1,
+	    	busy: false,
+	    	noMore: false,
+	    	day: "",
+	    	dropBol: false,
+	    	days: [{day:3},{day:4},{day:5},{day:6},{day:''}],
+	    	areas:[{name:'澳门'},{name:'香港'},{name:'澳大利亚'},{name:'曼谷'},{name:'普吉岛'},{name:'巴黎'},{name:''}],
+	    	prekeyword:'',
+	    	prePage: '',
 	    }
   	},
   	components: {
    		XHeader,Icon,Flexbox,FlexboxItem
   	},
   	methods: {
-	    searchFn(){
+  		loadMore: function() {
+		    this.busy = true;
+		    let _this = this;
+		    if (this.noMore||!this.keyword) {
+		    	return;
+		    }
+			setTimeout(() => {
+		       	_this.page++;
+		       	_this.searchFn(true);
+		      }, 1000);
+		},
+	    searchFn(mask){
+			this.$vux.loading.show({
+				text: 'Loading'
+			});
+			if (this.prekeyword!==this.keyword) {
+				this.page = 1;
+			}
 	    	let params = {
-	    		keyword: this.keyword
+	    		keyword: this.keyword,
+	    		page: this.page,
+	    		day: this.day
 	    	}
 	    	search(params).then(res=>{
 	    		let {errcode,message,content} = res;
@@ -63,12 +113,23 @@ export default {
 	                    position: 'bottom'
 	                })
       			}else{
-      				this.goodsList = content;
+      				this.busy = false;
+      				if (!content.length&&mask) {
+      					this.noMore= true;
+      				}
+      				if(this.keyword===this.prekeyword&&mask&&this.prePage!==this.page){
+  						this.goodsList = this.goodsList.concat(content);
+  					}else{
+  						this.goodsList = content;
+  					}
+      				this.$vux.loading.hide();
       			}
+      			this.prekeyword =  this.keyword;
+      			this.prePage = this.page;
 	    	})
 	    },
 	    checkDetail(id){
-	    	this.$router.push(`./goodDetail?start_id=${id}`);
+	    	this.$router.push(`./goodDetail?goods_id=${id}`);
 	    }
 	},
 }
@@ -80,7 +141,7 @@ export default {
 		position: fixed;
 		top: 0px;
 		left: 0px;
-		z-index: 999999;
+		z-index: 99;
 	}
 	.searchBtn{
 		position: absolute;
@@ -143,37 +204,94 @@ export default {
 		overflow-x: hidden;
 		padding-bottom: 100px;
 		background-color: #fff;
+		.drop-wrap{
+			overflow: hidden;
+			transition: all .5s;
+		}
+		.drop-box{
+			padding: 15px;
+			dl{
+				display: -webkit-box;
+				@include sc(14px,$title_color);
+				line-height: 24px;	
+				dt{
+					width: 80px;
+				}
+				dd{
+					-webkit-box-flex: 1;
+					overflow: hidden;
+					span{
+						display: inline-block;
+						float: left;
+						padding: 0px 6px;
+						margin-right: 10px;
+						margin-bottom: 10px;
+						@include border-1px($primary_color);
+						border-radius: 4px;
+					}
+					.is-tab{
+						background-color: $primary_color;
+						color: #fff;
+					}			
+				}
+			}
+			.btn-box{
+				text-align: center;
+				margin-top: 10px;
+				button{
+					display: inline-block;
+					border: none;
+					border-radius: 4px;
+					padding: 6px 20px;
+					@include sc(14px,#fff);
+					background-color: transparent;
+					background-color: $primary_color;
+				}
+			}
+		}
+		.drop-icon{
+			text-align: center;
+			@include border-bottom-1px($border_color);
+			i{
+				display: inline-block;
+				transition: all .5s;
+			}
+			.vux-x-icon{
+				fill: $primary_color;
+			}
+			.open{
+				transform: rotateZ(180deg);
+			}
+		}
 		li{
 			.list{
 				display: -webkit-box;
-				height: 120px;
+				height: 110px;
 				padding: 12px 0px;
 				@include border-bottom-1px($border_color);
 			}
 			dt{
 				padding-left: 12px;
-				padding-right: 5px;
+				height: 85px;
     			-webkit-box-flex: 1;
 			}
 			.name{
 				@include sc(15px,#000);
-				line-height: 22px;
 			    @include ellipsis(1);
-			    margin-bottom: 12px;
+			    margin-bottom: 5px;
 			}
 			.detail{
-				line-height: 16px;
+				line-height: 20px;
+				height: 40px;
 			    @include ellipsis(2);
-				@include sc(13px,$detail_color);
+				@include sc(12px,$detail_color);
 			}
 			.price{
-				margin-top: 8px;
-				@include sc(14px,$title_color)
-				span{
-					padding-right: 6px;
-				}
+				margin-top: 5px;
+				line-height: 16px;
+				@include sc(12px,$title_color);
 				strong {
-					@include sc(16px,$price_color);
+					@include sc(14px,$price_color);
 				}
 				em{
 					margin-left: 6px;
@@ -187,7 +305,11 @@ export default {
 			    overflow: hidden;
 			    width: 125px;
 			    height: 85px;
-			    margin: 0px 16px;
+			    margin: 0px .8em;
+			    img{
+			    	width: 100%;
+			    	height: 100%;
+			    }
 			}
 		}
 		.noMore{

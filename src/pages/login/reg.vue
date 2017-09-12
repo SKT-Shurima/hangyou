@@ -126,6 +126,7 @@ export default {
 	      				if (userInfo) {
 	      					localStorage.removeItem('userInfo');
 	      				}
+	      				content = JSON.stringify(content);
 	      				localStorage.setItem('userInfo',content);
 	      				this.$router.replace('./login');
 	      			}

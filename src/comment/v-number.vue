@@ -1,8 +1,8 @@
 <template>
 	<div class="wrap">
-		<button @click='currentValue--;' :disabled='currentValue-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+		<button @click='changVal(-1)' :disabled='currentValue-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
 		<input type="number" name="" disabled  v-model.number='currentValue'>
-		<button @click='currentValue++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+		<button @click='changVal(1)'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
 	</div>
 </template>
 <script type='text/esmascript-6'>
@@ -29,28 +29,36 @@
 		      	type: Number,
 		      	required:false,
 		    },
-		},
-		 watch: {
-		    currentValue (newValue, old) {
-		      	if (newValue !== '') {
-		        	newValue = newValue-0<=0?0:newValue ;
-		      	}
-		      	if (typeof this.index ===  'number') {
-		      		let obj = {
-		      			index: this.index,
-		      			value: this.currentValue
-		      		}
-		      		this.$emit('onchange',obj);
-		      	}else{
-		      		this.$emit('onchange', this.currentValue);
-		      	}
-		    },
-		    value (newValue) {
-		      this.currentValue = newValue
-		    }
-		  },
-		methods:{
+		    date:{
 
+		    }
+		},
+		methods:{
+			changVal(mask){
+				let index =  this.index;
+				let reg = /\d/g;
+	  			let date = this.date;
+	  			if (!reg.test(date)) {
+	  				this.$vux.toast.show({
+	                    text: '请先选择使用日期',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                });
+	                return false;
+	  			}
+				if (mask<0) {
+					this.currentValue =  this.currentValue-0?this.currentValue:0;
+				}else{
+					this.currentValue++;
+				}
+				let obj = {
+	      			index: index,
+	      			value: this.currentValue
+	      		}
+		      	this.$emit('onchange',obj);
+			}
 		},
 	}
 </script>

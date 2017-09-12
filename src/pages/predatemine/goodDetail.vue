@@ -4,13 +4,13 @@
     <div class="box" v-if='detail'>
     	<div class="mainInfo">
 	    	<div class="mainImg">
-		 		<img :src='detail.images'>
+		 		<img :src='detail.images' @load='successLoadImg' @error='errorLoadImg' class="default-image">
 		 	</div>
 		 	<dl class="goodInfo">
 	     		<dt class="name" v-text='detail.name'></dt>
 	     		<dd class="detail" v-text='detail.explain'></dd>
 	     		<dd class="price">
-	     			<span><strong>{{detail.price-0|currency}}</strong>/人</span>起
+	     			<span><strong>{{detail.price-0|currency}}</strong>/月/人</span>起
 			      	<em>{{detail.market_price|currency}}/人</em>
 			      	<i>{{detail.sale_count}}人购买</i> 
 	     		</dd>
@@ -28,7 +28,7 @@
 	     	</div>
 	    </div>
     </div>
-    <div class="submit" @click='predatemine'>
+    <div class="submit" @click='predatemine' v-if='!reqParams.checkDetail'>
     	预定
     </div>
   </div>
@@ -54,8 +54,11 @@ export default {
 		 	return a.replace(/&(lt|gt|nbsp|amp|quot);/ig,function(all,t){return arrEntities[t];});
 		},
   		getInfo(){
+  			this.$vux.loading.show({
+				text: 'Loading'
+			});
   			let params = {
-  				start_id: this.reqParams.start_id
+  				goods_id: this.reqParams.goods_id
   			}
   			info(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -67,13 +70,25 @@ export default {
       				if (description) {
       					this.detail.descript = this.escape2Html(description);
       				}
+      				this.$vux.loading.hide();
       			}
   			})
   		},
   		predatemine(){
   			let userInfo = this.userInfo;
   			if (userInfo) {
-  				this.$router.push(`./predatemine?start_id=${this.reqParams.start_id}`);
+  				let on_sale = this.detail.on_sale;
+  				if (on_sale!=='1') {
+  					 this.$vux.toast.show({
+	                    text: '该商品已下架',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                });
+  					return false;
+  				}
+  				this.$router.push(`./predatemine?goods_id=${this.reqParams.goods_id}&travel_days=${this.detail.travel_days}`);
   			}else{
   				this.$router.push('./login');
   			}
@@ -104,7 +119,7 @@ export default {
 		top: 46px;
 		left: 0px;
 		width: 100%;
-		height: 100vh;
+		height: 100%;
 		overflow-y: scroll; 
 	}
 	.mainInfo{
@@ -163,7 +178,7 @@ export default {
 		.title{
 			text-align: center;
 			font-size: 16px;
-			height: 32px;
+			height: 38px;
 			span{
 				padding: 6px 0px;
 				border-bottom: 2px solid  $primary_color;
@@ -172,7 +187,7 @@ export default {
 	}
 	.submit{
 		position: fixed;
-		z-index: 99999;
+		z-index: 99;
 		bottom: 0px;
 		width: 100%;
 		height: 50px;
@@ -180,5 +195,14 @@ export default {
 		background-color: $primary_color;
 		text-align: center;
 		@include sc(16px,#fff);
+	}
+</style>
+<style type="text/css" lang='scss'>
+	.intro{
+		font-size: 14px;
+		line-height: 24px;
+		img{
+			width: 100%;
+		}
 	}
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="wrap">
    	<x-header :left-options="{showBack: false}">预定</x-header>
-    <div class="container">
+    <div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="0">
 		<div  class='scrollBox'>
 	      	<div class="scroll" :style='{width:102*category.length+12+"px"}'>
 	        	<div class="scroll-item" v-for="(item,index) in category" :key='index' @click='getcategory(item.category_id,index)' :class='{"scrollTab":tabIndex===index}' >
@@ -12,23 +12,11 @@
 	        	</div>
 	      	</div>
 	    </div>
-	  <!--  <scroller lock-y scrollbar-x>
-	   		<div class='scrollBox' :style='{width:102*category.length+12+"px"}'>
-	   			<div class="scroll">
-		        	<div class="scroll-item" v-for="(item,index) in category" :key='index' @click='getcategory(item.category_id,index)' :class='{"scrollTab":tabIndex===index}'>
-		        		<img :src='item.images' >
-		        		<div class="scroll-name-box">
-		        			<span v-text='item.name' class="scroll-name"></span>	
-		        		</div>
-		        	</div>
-		      	</div>
-	   		</div>
-	    </scroller> -->
 	    <ul class="panel">
 	    	<li v-for='(item,index) in destination' :key='index'>
-	    		<dl @click='getDes(item.destination_id)'>
+	    		<dl @click='getDes(item.address_id)'>
 	    			<dt>
-	    				<img :src="item.images">
+	    				<img class="default-image" :src="item.images" @load='successLoadImg' @error='errorLoadImg'>
 	    			</dt>
 	    			<dd>
 	    				<div class="name" v-text='item.name'></div>
@@ -52,31 +40,62 @@ import {getCategory} from '../../config/api'
 export default {
   	data () {
 	    return {
-	    	page: "",
 	    	category:[],
 	    	destination:[],
-	    	tabIndex: 0
+	    	tabIndex: 0,
+	    	tabId:"",
+	    	page: 1,
+	    	busy: false,
+	    	noMore: false,
 	    }
   	},
   	methods: {
   		getDes(id){
-  			this.$router.push(`/getDes?destination_id=${id}`);
+  			this.$router.push(`/getDes?address_id=${id}`);
   		},
-	    getcategory(id,index){
-	    	let params ={
-	    		page: this.page
-	    	}
+  		loadMore: function() {
+		    this.busy = true;
+		    let _this = this;
+		    if (this.noMore) {
+		    	return;
+		    }
+			setTimeout(() => {
+		       	_this.page++;
+		       	_this.getcategory(this.tabId,this.tabIndex,true);
+		      }, 1000);
+		},
+	    getcategory(id,index,mask){
+	    	this.$vux.loading.show({
+				text: 'Loading'
+			});
+	    	let params ={};
 	    	if(id){
 	    		params.category_id = id;
 	    		this.tabIndex = index;
+	    		if(this.tabId!==id){
+	    			this.page = 1; 
+	    		}
 	    	}
+	    	params.page = this.page;
 	    	getCategory(params).then(res=>{
 	    		let {errcode,message,content} = res;
 	    		if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				this.category = content.category;
-      				this.destination = content.destination;
+      				if (!this.category.length) {
+      					this.category = content.category;
+      					this.tabId =  this.category[0].category_id;
+      				}
+      				this.busy = false;
+      				if (mask) {
+      					this.destination = this.destination.concat(content.destination);
+      				}else{
+      					this.destination = content.destination;
+      				}
+      				if(!content.destination.length){
+      					this.noMore= true;
+      				}
+      				this.$vux.loading.hide();
       			}
     		})
 	    }

@@ -68,3 +68,8 @@ a{
 }
 a:visited {text-decoration:none;}
 a:hover {text-decoration:none;}
+.default-image{
+	background-image: url('./images/common/default.png');
+	background-size: cover;
+	background-repeat: no-repeat;
+}

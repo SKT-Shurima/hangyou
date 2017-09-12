@@ -93,7 +93,11 @@ const  mixins = {
     		if(cval!=null){  
         		document.cookie = c_name + "=" + cval + ";expires=" + exp.toGMTString();  
    			}
-		}
+		},
+        escape2Html(a) {
+         var arrEntities={'lt':'<','gt':'>','nbsp':' ','amp':'&','quot':'"'};
+         return a.replace(/&(lt|gt|nbsp|amp|quot);/ig,function(all,t){return arrEntities[t];});
+        }
     }
 };
 export default mixins ;

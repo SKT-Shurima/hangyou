@@ -2,9 +2,9 @@
   <div class="wrap">
     <x-header :left-options="{backText: ''}">订单详情</x-header>
     <div class="container">
-    	<dl class="orderDetail">
+    	<dl class="orderDetail" @click='checkGoodsDetail'>
     		<dt>
-    			<img :src="order.images">
+    			<img :src="order.images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
       		</dt>
 			<dd>
       			<div class="name" v-text='order.name'></div>
@@ -28,30 +28,35 @@
       		</dd>
     	</dl>
     	<div class="travelInfo">
-  			<h1>酒店信息<em :class='{"primary":order.hotel_confirm==="0"}'>{{order.hotel_confirm==='1'?"（已确认）":"（未确认）"}}</em><a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
-  			<dl v-for='(item,index) in hotel' :key='index'>
-  				<dt class="date">
-  					{{item.start_date*1000|dateStyle}}至{{item.end_date*1000|dateStyle}}
-  				</dt>
-  				<dd class="name" v-text='item.name'></dd>
-  			</dl>
-  			<h1 style="margin-top:10px;">航班信息<em :class='{"primary":order.flight_confirm==="0"}'>{{order.flight_confirm==='1'?"（已确认）":"（未确认）"}}</em></h1>
-  			<dl v-for='(item,index) in flight' :key='index'>
-  				<dt class="date">
-  					{{item.start_date*1000|dateStyle}}
-  				</dt>
-  				<dd class="site">
-  					{{item.start_station}}（{{item.start_time}}）<i class="airIcon"></i>{{item.end_station}}（{{item.end_time}}）<em v-if='item.end_extra-0'>+1</em>
-  				</dd>
-  			</dl>
+    		<div v-if='hotel.length'>
+	  			<h1>酒店信息<em :class='{"primary":order.hotel_confirm==="0"}'>{{order.hotel_confirm==='1'?"（已确认）":"（未确认）"}}</em><a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
+	  			<dl v-for='(item,index) in hotel' :key='index'>
+	  				<dt class="date">
+	  					{{(date-0+(item.start_day-1)*86400)*1000|dateStyle}}({{item.start_time}})至{{(date-0+(item.end_day-1)*86400)*1000|dateStyle}}({{item.end_time}})
+	  				</dt>
+	  				<dd class="name" v-text='item.name'></dd>
+	  			</dl>
+  			</div>
+  			<div v-if='flight.length'>
+	  			<h1 style="margin-top:10px;">航班信息<em :class='{"primary":order.flight_confirm==="0"}'>{{order.flight_confirm==='1'?"（已确认）":"（未确认）"}}</em></h1>
+	  			<dl v-for='(item,index) in flight' :key='index'>
+	  				<dt class="date">
+	  					{{(date-0+(item.flight_day-1)*86400)*1000|dateStyle}}
+	  				</dt>
+	  				<dd class="site">
+	  					{{item.start_station}}（{{item.start_time}}）<i class="airIcon"></i>{{item.end_station}}（{{item.end_time}}）<em v-if='item.end_extra-0'>+1</em>
+	  				</dd>
+	  			</dl>
+  			</div>
+  			
   		</div>
-  		<div class="special">
+  		<div class="special" v-if='special.length'>
   			<h1 class="title">特色项目</h1>
   			<ul>
 				<li v-for='(item,index) in special' :key='index'>
 					<dl>
 						<dt>
-							<img :src="item.images">
+							<img :src="item.images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
 						</dt>
 						<dd>
 							<div class="name" v-text='item.name'></div>
@@ -74,8 +79,7 @@
   			<dl class="infoDetail" v-for='(item,index) in passenger' :key='index'>
     			<dt class="name" v-text='item.name'></dt>
     			<dd class="spell">
-    				<span>{{item.lname}}/{{item.surname}}</span>
-    				<x-icon type="ios-arrow-right" size="18"></x-icon>
+    				<span>{{item.lname}}/{{item.surname}}</span><span @click='checkPassenger(item.customer_passenger_id)'><x-icon type="ios-arrow-right" size="20"></x-icon></span>
     			</dd>
     			<dd class="num">
     				<span>护照编号：</span><em v-text='item.card'></em>
@@ -98,14 +102,14 @@
   				<span>订单编号：</span>{{order.order_sn}}
   			</div>
   			<div class="order">
-  				<span>下单时间：</span>{{order.date*1000|dateStyle}}&nbsp;{{order.date*1000|timeStyle}}
+  				<span>下单时间：</span>{{order.date_add*1000|dateStyle}}&nbsp;{{order.date_add*1000|timeStyle}}
   			</div>
   			<p>
   				<span>备注信息：</span>{{order.note}}
   			</p>
   		</div>
     </div>
-	<div class="submit">
+	<div class="submit" v-if='order.order_state==="1"||order.order_state==="2"||order.order_state==="7"'>
 		<dl class="nopay" v-if='order.order_state==="1"'>
 			<dt @click='cancelOrderFn(order.id)'>取消订单</dt>
 			<dd @click='payfor=true'>立即支付</dd>
@@ -128,13 +132,13 @@
   					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
   				</dd>
   				<dd>
-  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
+  					<i class="installment"></i>分期付款 <em>（测试中）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
   				</dd>
   			</dl>
-			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
-				<li class="list">
+			<ul class="coupons" v-if='coupons.length'>
+				<li class="list" v-for='(item,index) in coupons' :key='index' >
 					<div class="chooseBox">
-    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    					<i :class="{'checked': item.checkBol}" @click='chooseCoupons(index)'></i>
     				</div>
     				<div class="listBox">
     					<dl>
@@ -150,7 +154,7 @@
 			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{order.order_amount|currency}}</em>
+  					总价：<em>{{(order.order_amount-couponsCount)>0?(order.order_amount-couponsCount):0|currency}}</em>
   				</span>
   			</div>
   			<div class="submitPayfor" @click='submitPayfor'>
@@ -163,7 +167,6 @@
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
-import VNumber from '../../comment/v-number'
 import Popup from 'vux/src/components/popup'
 import Picker from 'vux/src/components/picker'
 import CheckIcon from 'vux/src/components/check-icon'
@@ -176,7 +179,6 @@ export default {
 	},
   	data () {
 	    return {
-	    	src: 'https://static.vux.li/demo/1.jpg',
 	    	userInfo: {},
 	    	order: "",
 	    	hotel: [],
@@ -186,17 +188,26 @@ export default {
 	    	payfor: false,
 	    	payType: true,
 	    	coupons: [],
-	    	couponsIndex: ""
+	    	couponsIndex: "",
+	    	couponsCount: 0,
+	    	date:''
 	    }
   	},
 	components: {
-    	XHeader,VNumber,Picker,Popup,Flexbox,FlexboxItem,CheckIcon
+    	XHeader,Picker,Popup,Flexbox,FlexboxItem,CheckIcon
   	},
   	methods: {
+  		checkGoodsDetail(){
+  			let id = this.order.goods_id;
+  			this.$router.push(`/goodDetail?goods_id=${id}&checkDetail=true`);
+  		},
   		checkDetail(){
-  			let start_id = this.order.start_id ;
+  			let goods_id = this.order.goods_id ;
   			let date =  this.reqParams.date;
-  			this.$router.push(`/hotelFlightDetail?start_id=${start_id}&date=${date}`);
+  			this.$router.push(`/hotelFlightDetail?goods_id=${goods_id}&date=${date}`);
+  		},
+  		checkPassenger(id){
+  			this.$router.push(`/checkTraveler?customer_passenger_id=${id}`);
   		},
   		getCoupons(){
   			let params ={
@@ -215,59 +226,17 @@ export default {
   			})
   		},
   		chooseCoupons(index){
-  			for(let i = 0;i<this.coupons.length;i++){
-  				this.coupons[i].checkBol = false;
-  				if (this.couponsIndex===index) {
-  					this.coupons[index].checkBol = false;
-  				}else{
-  					this.coupons[index].checkBol = true;
-  				}
-  			}
+  			if (this.couponsIndex===index) {
+				this.coupons[index].checkBol = !this.coupons[index].checkBol;
+			}else{
+				if (this.couponsIndex!=="") {
+					this.coupons[this.couponsIndex].checkBol = false;
+				}
+				this.coupons[index].checkBol = true;
+			}
+  			this.couponsCount = this.coupons[index].checkBol?this.coupons[index].discount-0:0;
   			this.couponsIndex =  index;
   		},
-  		initHotelFlight(hotel,flight){
-  			var init_date =  this.reqParams.date-0;
-  			hotel.sort(compare('sort'));
-			flight.sort(compare('sort'));
-			var extra = new Array();
-			hotel.forEach(function(value,index,array){
-				extra[index] = value['stay_day'];
-			});
-			//获取飞机到达时间
-			var arrival_day = 0;
-			flight.forEach(function(value,index,array){
-				if(value['is_return'] == 0){
-					arrival_day = value['end_extra'];
-				}
-				flight[index]['start_date'] = init_date+value['start_extra']*86400;
-			});
-			//酒店开始入住时间
-			var hotel_init_date = init_date+86400*arrival_day;
-			for(var i = 0;i<hotel.length;i++){
-				var k = i;
-				var date_start = hotel_init_date;
-				var date_end = hotel_init_date;
-		
-				while(k >= 0){
-					if(k-1 >= 0){
-						date_start += 86400*hotel[k-1]['stay_day'];
-					}
-					date_end += 86400*hotel[k]['stay_day'];
-					k--;
-				}
-				hotel[i]['start_date'] = date_start;
-				hotel[i]['end_date'] = date_end;
-			}
-			function compare(property){
-			    return function(a,b){
-			        var value1 = a[property];
-			        var value2 = b[property];
-			        return value1 - value2;
-			    }
-			};
-			this.hotel = hotel;
-			this.flight = flight;
-		},
   		getDetail(){
   			let params = {
   				access_token: this.userInfo.access_token,
@@ -281,7 +250,9 @@ export default {
       				this.order = content.order;
       				this.passenger = content.passenger;
       				this.special = content.special;
-      				this.initHotelFlight(content.hotel,content.flight);
+      				this.hotel = content.hotel?content.hotel:this.hotel;
+					this.flight = content.flight?content.flight:this.flight;
+					this.$vux.loading.hide();
       			}
   			})
   		},
@@ -375,22 +346,33 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				let _this=  this;
-      				WeixinJSBridge.invoke('getBrandWCPayRequest',
-                    {
-                        "appId":content.appId,
-						"nonceStr":content.nonceStr,
-						"package":content.package,
-						"signType":content.signType,
-						"timeStamp":content.timeStamp,
-						"paySign":content.paySign
-					},
-                    function(res){
-                        // WeixinJSBridge.log(res.err_msg);
-                        // alert(res.err_code+res.err_desc+res.err_msg);
-                        let  err_msg = res.err_msg;
-                      	 _this.$router.push('./mine');
-                    }
-                );
+      				if (this.order.order_amount-this.couponsCount>0) {
+      					WeixinJSBridge.invoke('getBrandWCPayRequest',
+	                    {
+	                        "appId":content.appId,
+							"nonceStr":content.nonceStr,
+							"package":content.package,
+							"signType":content.signType,
+							"timeStamp":content.timeStamp,
+							"paySign":content.paySign
+						},
+		                    function(res){
+		                        // WeixinJSBridge.log(res.err_msg);
+		                        // alert(res.err_code+res.err_desc+res.err_msg);
+		                        let  err_msg = res.err_msg;
+		                      	 _this.$router.push('./mine');
+		                    }
+		                );
+      				}else{
+      					this.$vux.toast.show({
+			  				text:'支付成功',
+			  				time: 3000,
+			  				position: 'middle',
+			  				onHide(){
+			  					_this.$router.push('./mine');
+			  				}
+			  			})
+      				}
 			 		this.payfor = false;	
       			}
   			})
@@ -398,6 +380,7 @@ export default {
 	},
 	created(){
   		this.reqParams = this.getHashReq();	
+  		this.date = this.reqParams.date;
   		let userInfo =  localStorage.userInfo;
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
@@ -410,6 +393,9 @@ export default {
   			}else{
   				this.getDetail();
   				this.getCoupons();
+  				this.$vux.loading.show({
+					text: 'Loading'
+				});
   			}
   		})
   	}

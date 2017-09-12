@@ -1,12 +1,12 @@
 <template>
   <div class="wrap">
     <x-header :left-options="{backText: ''}">消息</x-header>
-    <div class="container">
+    <div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="0">
     	<ul class="msgList">
     		<li v-for='(item,index) in msgList' :key='index'>
     			<dl>
     				<dt class="num">
-    					订单编号：10086
+    					订单编号：{{item.order_sn}}
     				</dt>
     				<dd>
     					<div class="status" v-text='item.title'></div>
@@ -35,23 +35,44 @@ export default {
   	data () {
 	    return {
 	    	userInfo: '',
-	    	msgList: []
+	    	msgList: [],
+        page: 1,
+        busy: false,
+        noMore: false
 	    }
   	},
   	components: {
     	XHeader
   	},
   	methods: {
+      loadMore: function() {
+        this.busy = true;
+        let _this = this;
+        if (this.noMore) {
+          return;
+        }
+        setTimeout(() => {
+            _this.page++;
+            _this.getMsg();
+          }, 1000);
+      },
   		getMsg(){
   			let params = {
-  				access_token: this.userInfo.access_token
+  				access_token: this.userInfo.access_token,
+          page: this.page
   			}
   			GetAllMessage(params).then(res=>{
   				let {errcode,message,content} = res;
       			if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				this.msgList = content;
+              this.busy = false;
+              if (content.length) {
+                this.msgList = this.msgList.concat(content);
+              }else{
+                this.noMore= true;
+              }
+              this.$vux.loading.hide();
       			}
   			})
   		}
@@ -68,6 +89,9 @@ export default {
   				this.$router.replace('./login');
   			}else{
   				this.getMsg();
+          this.$vux.loading.show({
+            text: 'Loading'
+          });
   			}
   		})
   	}
@@ -84,7 +108,7 @@ export default {
 	height: 100%;
 	overflow-y: scroll;
 	background-color: #f7f7f7;
-	padding: 0px 15px;
+	padding: 0px 15px 120px;
 }
 .msgList{
 	width: 100%;

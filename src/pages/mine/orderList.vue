@@ -1,12 +1,12 @@
 <template>
   <div class="wrap">
    	<x-header :left-options="{backText: ''}">全部订单</x-header>
-    <div class="container">
+    <div class="container" v-infinite-scroll="loadMore" infinite-scroll-disabled="busy" infinite-scroll-distance="0">
 	    <ul class="panel">
 	    	<li v-for='(item,index) in orderList'  :key='index'>
 	    		<dl @click='checkDetail(item)'>
 	    			<dt>
-	    				<img :src="item.images">
+	    				<img :src="item.images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
 	    			</dt>
 	    			<dd>
 	    				<div class="name" v-text='item.name'></div>
@@ -23,8 +23,11 @@
 	    					<button class="default_btn" @click='cancelOrderFn(item.id)'>取消订单</button>
 	    					<button class="primary_btn" @click='payFor(item)'>立即支付</button>
 	    				</span>
-	    				<span v-if='item.order_state==="2"' class="primary">
+	    				<span v-if='item.order_state==="2"&&item.is_refund==="0"' class="primary">
 	    					已付款，待确认&nbsp;<button class="text_btn" @click='refundFn(item.id)'>退款</button>
+	    				</span>
+	    				<span v-if='item.order_state==="2"&&item.is_refund!=="0"' class="primary">
+	    					订单已申请退款 
 	    				</span>
 	    				<span v-if='item.order_state==="3"'>
 	    					已付款，已确认&nbsp;<button class="text_btn" @click='refundFn(item.id)'>退款</button>
@@ -74,13 +77,13 @@
   					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
   				</dd>
   				<dd>
-  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
+  					<i class="installment"></i>分期付款 <em>（测试中）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
   				</dd>
   			</dl>
-			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
-				<li class="list">
+			<ul class="coupons" v-if='coupons.length'> 
+				<li class="list" v-for='(item,index) in coupons'  :key='index'>
 					<div class="chooseBox">
-    					<i :class="{'checked': couponsIndex===index}" @click='couponsIndex=index'></i>
+    					<i :class="{'checked': item.checkBol}" @click='chooseCoupons(index)'></i>
     				</div>
     				<div class="listBox">
     					<dl>
@@ -96,7 +99,7 @@
 			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{payItem.order_amount|currency}}</em>
+  					总价：<em>{{(payItem.order_amount-couponsCount)>0?(payItem.order_amount-couponsCount):0|currency}}</em>
   				</span>
   			</div>
   			<div class="submitPayfor" @click='submitPayfor'>
@@ -127,7 +130,11 @@ export default {
 	    	payType: true,
 	    	payItem: {},
 	    	coupons: [],
-	    	couponsIndex: ""
+	    	couponsIndex: "",
+	    	couponsCount: 0,
+	    	page: 1,
+	    	busy: false,
+	    	noMore: false
 	    }
   	},
   	components: {
@@ -147,18 +154,20 @@ export default {
       					content[i].checkBol =  false;
       				}
       				this.coupons = content;
+      				console.log(this.coupons)
       			}
   			})
   		},
   		chooseCoupons(index){
-  			for(let i = 0;i<this.coupons.length;i++){
-  				this.coupons[i].checkBol = false;
-  				if (this.couponsIndex===index) {
-  					this.coupons[index].checkBol = false;
-  				}else{
-  					this.coupons[index].checkBol = true;
-  				}
-  			}
+  			if (this.couponsIndex===index) {
+				this.coupons[index].checkBol = !this.coupons[index].checkBol;
+			}else{
+				if (this.couponsIndex!=="") {
+					this.coupons[this.couponsIndex].checkBol = false;
+				}
+				this.coupons[index].checkBol = true;
+			}
+  			this.couponsCount = this.coupons[index].checkBol?this.coupons[index].discount-0:0;
   			this.couponsIndex =  index;
   		},
   		orderFn(fn,id,msg){
@@ -177,16 +186,18 @@ export default {
 		  			fn(params).then(res=>{
 		  				let {errcode,message} = res;
 		      			if (errcode!==0) {
-		      				this.errcode(errcode,message);
+		      				_this.errcode(errcode,message);
 		      			}else{
-		      				 this.$vux.toast.show({
+		      				 _this.$vux.toast.show({
 			                    text: message,
 			                    time: 3000,
 			                    type: "text",
 			                    width: "12em",
 			                    position: 'bottom'
 			                })
-							this.getOrder();
+		      				_this.page =  1 ;
+		      				_this.orderList = [];
+							_this.getOrder();
 		      			}
 		  			})
 				}
@@ -239,55 +250,74 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				let _this=  this;
-      				WeixinJSBridge.invoke('getBrandWCPayRequest',
-                    {
-                        "appId":content.appId,
-						"nonceStr":content.nonceStr,
-						"package":content.package,
-						"signType":content.signType,
-						"timeStamp":content.timeStamp,
-						"paySign":content.paySign
-					},
-                   function(res){
-                        // WeixinJSBridge.log(res.err_msg);
-                        // alert(res.err_code+res.err_desc+res.err_msg);
-                        let  err_msg = res.err_msg;
-                       	_this.$router.push('./mine');
-                    }	
-                );
+      				if (this.payItem.order_amount-this.couponsCount>0) {
+      					WeixinJSBridge.invoke('getBrandWCPayRequest',
+	                    {
+	                        "appId":content.appId,
+							"nonceStr":content.nonceStr,
+							"package":content.package,
+							"signType":content.signType,
+							"timeStamp":content.timeStamp,
+							"paySign":content.paySign
+						},
+		                   function(res){
+		                        // WeixinJSBridge.log(res.err_msg);
+		                        // alert(res.err_code+res.err_desc+res.err_msg);
+		                        let  err_msg = res.err_msg;
+		                       	_this.$router.push('./mine');
+		                    }	
+		                );
+      				}else{
+      					this.$vux.toast.show({
+			  				text:'支付成功',
+			  				time: 3000,
+			  				position: 'middle',
+			  				onHide(){
+			  					_this.$router.push('./mine');
+			  				}
+			  			})
+      				}
 			 		this.payfor = false;	
       			}
   			})
   		},
+  		loadMore: function() {
+		    this.busy = true;
+		    let _this = this;
+		    if (this.noMore) {
+		    	return;
+		    }
+			setTimeout(() => {
+		       	_this.page++;
+		       	_this.getOrder();
+		      }, 1000);
+		},
   		getOrder(){
+  			this.$vux.loading.show({
+				text: 'Loading'
+			});
   			let params ={
-  				access_token: this.userInfo.access_token
+  				access_token: this.userInfo.access_token,
+  				page: this.page
   			};
   			orderList(params).then(res=>{
   				let {errcode,message,content} = res;
       			if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				this.orderList = content;
+      				this.busy = false;
+      				if (content.length) {
+      					this.orderList = this.orderList.concat(content);
+      				}else{
+      					this.noMore= true;
+      				}
+      				this.$vux.loading.hide();
       			}
   			})
   		},
   		checkDetail(item){
   			let {id,date} = item;
   			this.$router.push(`orderDetail?order_id=${id}&date=${date}`);
-  		},
-  		getCoupons(){
-  			let params ={
-  				access_token: this.userInfo.access_token
-  			};
-  			myCoupon(params).then(res=>{
-  				let {errcode,message,content} = res;
-      			if (errcode!==0) {
-      				this.errcode(errcode,message);
-      			}else{
-      				this.coupons = content;
-      			}
-  			})
   		}
   	},
   	created(){

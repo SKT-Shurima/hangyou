@@ -5,19 +5,28 @@
     	<ul>
 			<li v-for='(item,index) in specialList' :key='index'>
 				<dl>
-					<dt>
-						<img :src="item.images">
+					<dt @click='detailBol=true;descript=item.descript'>
+						<img :src="item.images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
 					</dt>
 					<dd>
 						<div class="name" v-text='item.name'></div>
 						<div class="chooseDate">
-							<span v-text='item.date' @click='chooseDate(index)'></span><i class="icon"></i>
+							<div v-show='item.is_select_date==="1"'>
+								<span v-text='item.date' @click.stop='chooseDate(index)'></span><i class="icon"></i>
+							</div>
 						</div>
 						<div class="priceInfo">
 							<div class="price">
 								<em>{{item.price|currency}}</em>/人	
 							</div>
-							<div class="chooseNum">份数&nbsp;&nbsp;<v-number :value='item.count' :index='index'  @onchange='changeNum'></v-number></div>
+							<div class="chooseNum" id='changeNum'>
+								<span>份数&nbsp;&nbsp;</span>
+								<em class="btn-box">
+									<button @click='changCount(item,-1)' :disabled='item.count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+									<input type="number" name="" disabled  v-model.number='item.count'>
+									<button @click='changCount(item,1)'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+								</em>
+							</div>
 						</div>
 					</dd>
 				</dl>
@@ -29,12 +38,18 @@
     </div>
     <dl class="submit">
     	<dt>
-    		总价：<span> {{totalprice|currency}}</span>
+    		总价：<span> {{(totalprice-0).toFixed(2)|currency}}</span>
     	</dt>
     	<dd @click='completeInfo'>
     		下一步
     	</dd>
     </dl>
+    <div v-transfer-dom>
+      <x-dialog v-model="detailBol" :scroll="false" hide-on-blur>
+      		<div v-html='descript' class='descript'>
+      		</div>
+      </x-dialog>
+    </div>
  	<div v-transfer-dom>
   		<popup v-model="chooseBol">
   			<dl class="opera">
@@ -48,19 +63,21 @@
 </template>
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header'
+import XDialog  from 'vux/src/components/x-dialog'
 import VNumber from '../../comment/v-number'
 import Popup from 'vux/src/components/popup'
 import Picker from 'vux/src/components/picker'
 import TransferDom from 'vux/src/directives/transfer-dom' 
 import Utils from '../../config/toChinese'
-import {selectSpecial} from '../../config/api' 
+import {selectSpecial} from '../../config/api'
+let preRouter = '';
 export default {
 	directives: {
 	    TransferDom
 	},
   	data () {
+  		
 	    return {
-	    	src: 'https://static.vux.li/demo/1.jpg',
 	    	date: '请选择使用日期',
 	    	chooseBol: false,
 	    	dateList: [],
@@ -69,11 +86,14 @@ export default {
 	    	specialList: [],
 	    	totalprice: 0,
 	    	preBaseInfo: '',
-	    	index: ''
+	    	index: '',
+	    	detailBol: false,
+	    	descript: "",
+	    	preRouter:''
 	    }
   	},
 	components: {
-    	XHeader,VNumber,Picker,Popup
+    	XHeader,VNumber,Picker,Popup,XDialog
   	},
   	watch:{
   		specialList:{
@@ -81,11 +101,18 @@ export default {
   				let totalprice =  this.preBaseInfo.totalprice;
   				let price = 0;
   				for (let i = 0; i < newVal.length; i++) {
-  					let reg = /\d/g;
   					let date =  newVal[i].date;
-  					if ((newVal[i].count-0)&&reg.test(date)) {
-  						price += newVal[i].price*newVal[i].count;
+  					if (newVal[i].is_select_date==='1') {
+  						let reg = /\d/g;
+  						if ((newVal[i].count-0)&&reg.test(date)) {
+	  						price += newVal[i].price*newVal[i].count;
+	  					}
+  					}else{
+  						if ((newVal[i].count-0)) {
+	  						price += newVal[i].price*newVal[i].count;
+	  					}
   					}
+  					
   				}
   				this.totalprice = totalprice+price;
   			},
@@ -94,12 +121,11 @@ export default {
   	},
   	methods: {
   		initDateList(){
-  			let start =  this.preBaseInfo.start_time;
-  			let end =  this.preBaseInfo.end_time;
-  			let day = (end-start)/86400;
+  			let days =  this.preBaseInfo.travel_days;
+  			let date = this.preBaseInfo.date-0;
   			let arr = [] ;
-  			for (let i = 0; i < day; i++) {
-  				let time = start + i*86400;
+  			for (let i = 0; i < days; i++) {
+  				let time = date + i*86400;
   				let val = dateStyle(time);
   				let numDay = Utils.numberToChinese(i+1);
   				val = `${val}(第${numDay}天)`;
@@ -122,9 +148,12 @@ export default {
 			};
   		},
   		initList(){
+  			this.$vux.loading.show({
+				text: 'Loading'
+			});
   			let params = {
   				access_token: this.userInfo.access_token,
-  				start_id: this.reqParams.start_id
+  				goods_id: this.reqParams.goods_id
   			}
   			selectSpecial(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -137,7 +166,17 @@ export default {
       					arr[i].count = 0 ;
       					arr[i].date = '请选择使用日期';
       				}
-      				this.specialList =  arr;	
+      				this.specialList =  arr;
+      				this.$vux.loading.hide();
+      				if (!arr.length) {
+      					if (preRouter.indexOf('predatemine')>-1) {
+      						let empty =[];
+      						sessionStorage.special = JSON.stringify(empty);
+      						this.$router.push('/completeInfo');
+      					}else{
+      						this.$router.back(-1);
+      					}
+      				}	
       			}
   			})
   		},
@@ -146,10 +185,25 @@ export default {
   			this.chooseBol = true;
   			this.dateVal[0] = this.dateList[0][0];
   		},
-  		changeNum(obj){
-  			let index = obj.index;
-  			this.specialList[index].count =  obj.value;
-
+  		changCount(item,mask){
+  			if (item.is_select_date==='1') {
+  				let reg = /\d/g;
+	  			if (!reg.test(item.date)) {
+	  				this.$vux.toast.show({
+	                    text: '请先选择使用日期',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                });
+	                return false;
+	  			}
+  			}
+  			if (mask<0) {
+				item.count--;
+			}else{
+				item.count++;
+			}
   		},	
 	    change (val) {
 	      console.log('val change', val)
@@ -162,17 +216,31 @@ export default {
 	    	let arr =  this.specialList;
 	    	let chooseArr = [];
 	    	for (let i = 0; i < arr.length; i++) {
-	    		let reg = /\d/g;
-	    		if (arr[i].count&&reg.test(arr[i].date)) {
-	    			let date = arr[i].date.split('(')[0].split('-');
-	    			let use_date = parseInt((new Date(date[0],date[1]-0,date[2]).getTime()/1000));
-	    			let obj = {
-	    				count: arr[i].count,
-	    				start_special_id: arr[i].start_special_id,
-	    				price: arr[i].price,
-	    				use_date: use_date
-	    			}
-	    			chooseArr.push(obj);
+	    		let use_date = '';
+	    		let  obj ;
+	    		if (arr[i].is_select_date==='1') {
+	    			let reg = /\d/g;
+	    			if(arr[i].count&&reg.test(arr[i].date)){
+		    			let date = arr[i].date.split('(')[0].split('-');
+		    			use_date = parseInt((new Date(date[0],date[1]-0,date[2]).getTime()/1000));
+		    			 obj = {
+		    				count: arr[i].count,
+		    				goods_special_id: arr[i].goods_special_id,
+		    				price: arr[i].price,
+		    				use_date: use_date
+		    			}
+		    			chooseArr.push(obj);
+		    		}
+	    		}else{
+	    			if(arr[i].count){
+		    			 obj = {
+		    				count: arr[i].count,
+		    				goods_special_id: arr[i].goods_special_id,
+		    				price: arr[i].price,
+		    				use_date: use_date
+		    			}
+		    			chooseArr.push(obj);
+		    		}
 	    		}
 	    	}
 	    	let passenger = [];
@@ -191,6 +259,11 @@ export default {
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
 		}
+  	},
+  	beforeRouteEnter (to, from, next) {
+  		next(()=>{
+  			preRouter = from.path;	
+  		});
   	},
   	mounted(){
   		this.$nextTick(()=>{
@@ -239,6 +312,7 @@ export default {
 			@include ellipsis(1);
 		}
 		.chooseDate{
+			height: 15px;
 			@include sc(13px,$detail_color);
 			margin: 8px 0px 14px;
 			.icon{
@@ -263,6 +337,38 @@ export default {
 			float: right;
 			margin-top: 4px;
 			@include sc(14px,#ccc);
+			.btn-box{
+				float: right;
+				width: 82px;
+				height: 20px;
+				.vux-x-icon{
+					fill: #999;
+				}
+				button,input{
+					float: left;
+				}
+				button{
+					display: inline-block;
+					width: 20px;
+					height: 20px;
+					border-radius: 2px;
+					outline: none;
+					border: none;
+					background-color: #eee;
+				}
+				input{
+					display: inline-block;
+					width: 42px;
+					height: 20px;
+					font-size: 14px;
+					color: #333;
+					line-height: 20px;
+					border: none;
+					outline: none;
+					text-align: center;
+					background-color: #fff;
+				}
+			}
 		}
 	}
 	.opera{
@@ -285,9 +391,16 @@ export default {
 		text-align: center;
 		@include sc(15px,$hint_color);
 	}
+	.descript{
+		width: 100%;
+	    min-height: 50vh;
+	    font-size: 14px;
+	    padding: 15px;
+	    text-align: left;
+	}
 	.submit{
 		position: fixed;
-		z-index: 99999;
+		z-index: 99;
 		bottom: 0px;
 		width: 100%;
 		height: 48px;

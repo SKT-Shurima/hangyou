@@ -4,7 +4,7 @@
     <div class="container">
     	<div class="aboutUs">
     		<cell title='用户条款协议' link='/protocol'  :is-link='true'></cell>
-    		<cell title='关于我们'  link='/aboutUs'  :is-link='true'></cell>
+    		<cell title='关于我们' link='/aboutUs' :is-link='true'></cell>
     	</div>
     	<div class="quit" @click='quit'>	
 			退出登录
@@ -15,12 +15,8 @@
 
 <script type='text/esmascript-6'>
 import XHeader from 'vux/src/components/x-header' 
-import Cell from 'vux/src/components/cell'   
+import Cell from 'vux/src/components/cell'
 export default {
-  	data () {
-	    return {
-	    }
-  	},
   	components: {
     	XHeader,Cell
   	},
@@ -33,13 +29,13 @@ export default {
   			this.$router.replace('/home');
 
   		}
-  	},
+  	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>
 @import '../../style/mixin.scss';
 .wrap{
-  height: 100vh;
+  min-height: 100vh;
 }
 .wrap,.container{
 	width: 100%;

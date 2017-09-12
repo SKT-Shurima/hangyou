@@ -46,12 +46,14 @@ export const banner = params=>{
 	return axios.post(`${base}/initAction/banner`,params).then(res=>res.data);
 }
 // 首页热卖产品
-export const hot = () =>{
-	return axios.post(`${base}/initAction/hot`).then(res=>res.data);
+export const hot = (params) =>{
+	params = trans(params);
+	return axios.get(`${base}/initAction/hot?${params}`).then(res=>res.data);
 }
 // 首页搜索
 export const search = params =>{
-	return axios.get(`${base}/initAction/search?keyword=${params.keyword}`).then(res=>res.data);
+	params = trans(params);
+	return axios.get(`${base}/initAction/search?${params}`).then(res=>res.data);
 }
 // 优惠券推送
 export const pushCoupon = params =>{
@@ -73,7 +75,7 @@ export const getCategory = params =>{
 // 产品详情
 export const info = params =>{
 	params = trans(params);
-	return axios.get(`${base}/startAction/info?${params}`).then(res=>res.data);
+	return axios.get(`${base}/goodsAction/info?${params}`).then(res=>res.data);
 }
 // 预定
 export const reserve = params =>{
@@ -149,7 +151,14 @@ export const editContact = params =>{
 	params = trans(params);
 	return axios.get(`${base}/userAction/editContact?${params}`).then(res=>res.data);
 }
-
+// 协议
+export const  agreement = ()=>{
+	return axios.get(`${base}/userAction/agreement`).then(res=>res.data);
+}
+// 关于我们
+export const about_us = ()=>{
+	return axios.get(`${base}/userAction/about_us`).then(res=>res.data);
+}
 
 // 订单
 // 订单列表

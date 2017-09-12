@@ -20,12 +20,12 @@
 		    		<h1>旅客{{index+1}}</h1>
 					<flexbox>
 				        <flexbox-item>
-				        	<router-link :to='{path:"/travelers",query:{choose:true}}'>
+				        	<router-link :to='{path:"/travelers",query:{choose:true,chooseIndex:index}}'>
 				          		<x-button type="default">选择旅客</x-button>
 				          	</router-link>
 				        </flexbox-item>
 				        <flexbox-item>
-				        	<router-link :to='{path:"/addTraveler",query:{addTraveler:true}}'>
+				        	<router-link :to='{path:"/addTraveler",query:{addTraveler:true,chooseIndex:index}}'>
 				          		<x-button type="default">填写信息</x-button>
 				          	</router-link>
 				        </flexbox-item>
@@ -87,11 +87,11 @@
   					<i class="wx"></i>微信支付  <em class="changeType"><check-icon :value='payType'></check-icon></em>
   				</dd>
   				<dd>
-  					<i class="installment"></i>申请分期付款 <em>（暂未开通）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
+  					<i class="installment"></i>分期付款 <em>（测试中）</em> <em class="changeType"><check-icon :value='!payType'></check-icon></em>
   				</dd>
   			</dl>
-  			<ul class="coupons" v-for='(item,index) in coupons' :key='index' v-if='coupons.length'>
-				<li class="list">
+  			<ul class="coupons"  v-if='coupons.length'>
+				<li class="list" v-for='(item,index) in coupons' :key='index'>
 					<div class="chooseBox">
     					<i :class="{'checked': item.checkBol}" @click='chooseCoupons(index)'></i>
     				</div>
@@ -109,7 +109,7 @@
 			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{sum|currency}}</em>
+  					总价：<em>{{(sum-couponsCount)>0?(sum-couponsCount):0|currency}}</em>
   				</span>
   			</div>
   			<div class="submitPayfor" @click='submitPayfor'>
@@ -155,6 +155,7 @@ export default {
 	    	passenger:[],
 	    	coupons: [],
 	    	couponsIndex: "",
+	    	couponsCount: 0,
 	    	userInfo: {}
 	    }
   	},
@@ -164,13 +165,12 @@ export default {
   	methods: {
   		delPassenger(index){
   			let passenger =  this.passenger;
-  			passenger.splice(index,1);
-  			sessionStorage.passenger = JSON.stringify(passenger);
   			let obj = {
   				name:""
   			}
-  			passenger.push(obj);
+  			passenger.splice(index,1,obj);
   			this.passenger= passenger;
+  			sessionStorage.passenger = JSON.stringify(this.passenger);
   		},
   		getCoupons(){
   			let params ={
@@ -189,17 +189,21 @@ export default {
   			})
   		},
   		chooseCoupons(index){
-  			for(let i = 0;i<this.coupons.length;i++){
-  				this.coupons[i].checkBol = false;
-  				if (this.couponsIndex===index) {
-  					this.coupons[index].checkBol = false;
-  				}else{
-  					this.coupons[index].checkBol = true;
-  				}
-  			}
+  			if (this.couponsIndex===index) {
+				this.coupons[index].checkBol = !this.coupons[index].checkBol;
+			}else{
+				if (this.couponsIndex!=="") {
+					this.coupons[this.couponsIndex].checkBol = false;
+				}
+				this.coupons[index].checkBol = true;
+			}
+  			this.couponsCount = this.coupons[index].checkBol?this.coupons[index].discount-0:0;
   			this.couponsIndex =  index;
   		},
   		getContactFn(){
+  			this.$vux.loading.show({
+				text: 'Loading'
+			});
   			let params = {
   				access_token: this.userInfo.access_token
   			}
@@ -208,7 +212,8 @@ export default {
       			if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				this.contact = content;	
+      				this.contact = content;
+      				this.$vux.loading.hide();	
       			}
   			})
   		},
@@ -227,9 +232,11 @@ export default {
   				room_count: preBaseInfo.room_count,
   				date_price_id: preBaseInfo.date_price_id,
   				difference: preBaseInfo.difference,
-  				start_id: preBaseInfo.start_id,
+  				goods_id: preBaseInfo.goods_id,
   				customer_contact_id: this.contact.customer_contact_id,
-  				note: this.note
+  				note: this.note,
+  				goods_hotel: preBaseInfo.goods_hotel?JSON.stringify(preBaseInfo.goods_hotel):"",
+  				goods_flight: preBaseInfo.goods_flight?JSON.stringify(preBaseInfo.goods_flight):""
   			}
   			if (passenger.length) {
   				let passengerArr = [];
@@ -292,56 +299,65 @@ export default {
       				this.errcode(errcode,message);
       			}else{
       				let _this=  this;
-      				WeixinJSBridge.invoke('getBrandWCPayRequest',
-                    {
-                        "appId":content.appId,
-						"nonceStr":content.nonceStr,
-						"package":content.package,
-						"signType":content.signType,
-						"timeStamp":content.timeStamp,
-						"paySign":content.paySign
-					},
-                   	function(res){
-                        // WeixinJSBridge.log(res.err_msg);
-                        // alert(res.err_code+res.err_desc+res.err_msg);
-                        let  err_msg = res.err_msg;
-                        sessionStorage.passenger = null;
-                        sessionStorage.preBaseInfo= null;
-                        sessionStorage.special =null;
-                        _this.$router.push('./mine');
-                    }
-                );
+      				if (this.sum-this.couponsCount>0) {
+	      				WeixinJSBridge.invoke('getBrandWCPayRequest',
+	                    {
+	                        "appId":content.appId,
+							"nonceStr":content.nonceStr,
+							"package":content.package,
+							"signType":content.signType,
+							"timeStamp":content.timeStamp,
+							"paySign":content.paySign
+						},
+		                   	function(res){
+		                        // WeixinJSBridge.log(res.err_msg);
+		                        // alert(res.err_code+res.err_desc+res.err_msg);
+		                        let  err_msg = res.err_msg;
+		                        sessionStorage.passenger = null;
+		                        sessionStorage.preBaseInfo= null;
+		                        sessionStorage.special =null;
+		                        _this.$router.push('./mine');
+		                    }
+      					);
+      				}else{
+      					this.$vux.toast.show({
+			  				text:'支付成功',
+			  				time: 3000,
+			  				position: 'middle',
+			  				onHide(){
+			  					_this.$router.push('./mine');
+			  				}
+			  			})
+      				}
 			 		this.payfor = false;	
       			}
   			})
   		},
   	},
 	created(){
-		if (sessionStorage.preBaseInfo) {
-			this.preBaseInfo =  JSON.parse(sessionStorage.preBaseInfo);
-			let num = this.preBaseInfo.adult_count;
-			let arr =[];
-			for (let i = 0; i < num; i++) {
-				let obj = {
-					name: ""
-				}
-				arr.push(obj);
-			}
-			this.passenger= arr;
-		}else{
-			this.$router.back(-1);
-		}
-		let passenger = JSON.parse(sessionStorage.passenger);
-		if (passenger.length) {
-			let storePassenger = this.passenger;
-			for (let  i = 0; i < passenger.length; i++) {
-				storePassenger[i] = passenger[i];
-			}
-			this.passenger = storePassenger;
-		}
-  		let userInfo =  localStorage.userInfo;
+		let userInfo =  localStorage.userInfo;
 		if (userInfo) {
 			this.userInfo =  JSON.parse(userInfo);	
+		}
+		if (sessionStorage.preBaseInfo) {
+			this.preBaseInfo =  JSON.parse(sessionStorage.preBaseInfo);
+			let passenger = JSON.parse(sessionStorage.passenger);
+			if (!passenger.length) {
+				let num = this.preBaseInfo.adult_count+this.preBaseInfo.child_count;
+				let arr =[];
+				for (let i = 0; i < num; i++) {
+					let obj = {
+						name: ""
+					}
+					arr.push(obj);
+				}
+				this.passenger= arr;
+				sessionStorage.passenger= JSON.stringify(this.passenger);
+			}else{
+				this.passenger = passenger;
+			}
+		}else{
+			this.$router.back(-1);
 		}
 	},
   	mounted(){
@@ -540,5 +556,12 @@ export default {
 	.disabled{
 		background-color: #93d3ff;
 	}
+}
+.submitPayfor{
+	position: fixed;
+	bottom: 0px;
+}
+.totalPrice{
+	margin-bottom: 50px;
 }
 </style>
