@@ -229,7 +229,7 @@ export default {
   					checkCoupons+=coupons[i].coupon_id;
   				}
   			}
-  			if (this.order.coupon_ids) {
+  			if (this.payItem.coupon_ids) {
   				checkCoupons+=this.order.coupon_ids;
   			}
   			let params = {
@@ -237,7 +237,7 @@ export default {
   				order_sn: order.order_sn,
   				sum: order.order_amount,
   				payType: "2",
-  				openid: openid,
+  				// openid: openid,
   				coupons: checkCoupons,
   				pay_amount: order.pay_amount?order.pay_amount:''
   			}
