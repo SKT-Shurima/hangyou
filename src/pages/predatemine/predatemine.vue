@@ -57,17 +57,17 @@
   				<li>
   					<span>成人</span>&nbsp;&nbsp;<em v-show='priceInfo.adult_price-0'>{{priceInfo.adult_price|currency}}</em>/人
   					<div class="btn-box">
-						<button @click='adult_count--;' :disabled='adult_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+						<button @click='changeAdultNum(0);' :disabled='adult_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
 						<input type="number" name="" disabled  v-model.number='adult_count'>
-						<button @click='adult_count++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+						<button @click='changeAdultNum(1);'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
 					</div>
 				</li>
   				<li>
   					<span>儿童</span>&nbsp;&nbsp;<em v-show='priceInfo.child_price-0'>{{priceInfo.child_price|currency}}</em>/人&nbsp;&nbsp;不占床位
   					<div class="btn-box">
-						<button @click='child_count--;' :disabled='child_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
+						<button @click='changeChildNum(0);' :disabled='child_count-0===0'><x-icon type="ios-minus-empty" size="20"></x-icon></button>
 						<input type="number" name="" disabled  v-model.number='child_count'>
-						<button @click='child_count++;'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
+						<button @click='changeChildNum(1)'><x-icon type="ios-plus-empty" size="20"></x-icon></button>
 					</div>
   				</li>
   				<li>
@@ -117,7 +117,6 @@ export default {
 	    	},
 	    	totalprice: 0,
 	    	isFirst: true,
-	    	max: 0,
 	    	thisDay: 0
 	    }
   	},
@@ -144,14 +143,6 @@ export default {
   			if (newVal) {
   				this.isFirst = false;
   			}
-  		},
-  		adult_count(newVal,oldVal){
-  			this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
-  			this.countPrice();
-  		},
-  		child_count(newVal,oldVal){
-  			this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
-  			this.countPrice();
   		}
   	},
   	methods: {
@@ -262,14 +253,48 @@ export default {
 			this.date_price_id = item.date_price_id;
 			this.getInfo();
 		},
-  		changeAdultNum(val){
-  			this.adult_count = val;
-  			this.max = parseInt(this.adult_count/2);
-  			this.countPrice();
+  		changeAdultNum(mask){
+  			let count = this.adult_count + this.child_count;
+  			if (mask) {
+  				if (this.priceInfo.ticket-0>count) {
+  					this.adult_count++; 
+  					this.countPrice();	
+  				}else{
+  					this.$vux.toast.show({
+	                    text: '已超出最大购买量',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                });
+  				}
+  			}else{
+  				this.adult_count = this.adult_count<=0?0:--this.adult_count;
+  				this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
+  				this.countPrice(); 
+  			}
+  			
   		},
-  		changeChildNum(val){
-  			this.child_count = val;
-  			this.countPrice();
+  		changeChildNum(mask){
+  			let count = this.adult_count + this.child_count;
+  			if (mask) {
+  				if (this.priceInfo.ticket-0>count) {
+  					this.child_count++;
+  					this.child_count = this.child_count > parseInt(this.adult_count/2) ? parseInt(this.adult_count/2):this.child_count;
+  					this.countPrice();
+  				}else{
+  					this.$vux.toast.show({
+	                    text: '已超出最大购买量',
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                })
+  				}
+  			}else{
+  				this.child_count =  this.child_count<=0?0:--this.child_count;
+  				this.countPrice();
+  			}
   		},
   		chooseSpecial(){
   			let date_price_id =  this.date_price_id.trim();

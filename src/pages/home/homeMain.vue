@@ -20,7 +20,7 @@
 					<flexbox>
 						<flexbox-item class='good-img-box'>
 							<img :src="item.main.cover_images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
-							<span class="good-price">{{(item.main.price-0).toFixed(2)|currency}}/月/人起</span>
+							<span class="good-price">{{((item.main.price-0)/12).toFixed(2)|currency}}/月/人起</span>
 						</flexbox-item>
 					</flexbox>
 					<div class="theme">
@@ -34,7 +34,7 @@
 							<dl v-if='item.detail.left' @click='getDes(item.detail.left.destination_id)'>
 								<dt class='good-img-box'>
 									<img :src="item.detail.left.cover_images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
-									<span class="good-price">{{(item.detail.left.price-0).toFixed(2)|currency}}/月/人起</span>
+									<span class="good-price">{{((item.detail.left.price-0)/12).toFixed(2)|currency}}/月/人起</span>
 								</dt>
 								<dd class="infoName">
 									<strong v-text='item.detail.left.name'></strong>
@@ -46,7 +46,7 @@
 							<dl v-if='item.detail.right' @click='getDes(item.detail.right.destination_id)'>
 								<dt class='good-img-box'>
 									<img :src="item.detail.right.cover_images"  @load='successLoadImg' @error='errorLoadImg' class="default-image">
-									<span class="good-price">{{(item.detail.right.price-0).toFixed(2)|currency}}/月/人起</span>
+									<span class="good-price">{{((item.detail.right.price-0)/12).toFixed(2)|currency}}/月/人起</span>
 								</dt>
 								<dd class="infoName">
 									<strong v-text='item.detail.right.name'></strong>

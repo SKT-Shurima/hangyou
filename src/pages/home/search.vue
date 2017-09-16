@@ -19,11 +19,11 @@
 				<dl>
 					<dt>目的地</dt>
 					<dd>
-						<span @click='keyword=item.name' v-for='(item,index) in areas' :class='{"is-tab":item.name===keyword}'>{{item.name?item.name:'全部'}}</span>
+						<span @click='areasIndex=index;keyword=item.name;' v-for='(item,index) in areas' :class='{"is-tab":areasIndex===index}'>{{item.name?item.name:'全部'}}</span>
 					</dd>
 				</dl>
 				<div class="btn-box">
-					<button @click='searchFn'>确定</button>
+					<button @click='searchFn("choose")'>确定</button>
 				</div>
 			</div>
 		</div>
@@ -37,8 +37,8 @@
 		      			<div class="name" v-text='item.name'></div>
 		      			<div class="detail" v-text='item.explain'></div>
 		      			<div class="price">
-		      				<span><strong>{{(item.price-0).toFixed(2)|currency}}</strong>/月/人起</span>
-		      				<em>{{(item.market_price-0).toFixed(2)|currency}}/月/人起</em> 
+		      				<span><strong>{{((item.price-0)/12).toFixed(2)|currency}}</strong>/月/人起</span>
+		      				<em>{{((item.market_price-0)/12).toFixed(2)|currency}}/月/人</em> 
 		      			</div>
 		      		</dt>
 		      		<dd>
@@ -58,7 +58,7 @@
 import XHeader from 'vux/src/components/x-header'  
 import Icon from 'vux/src/components/icon'
 import {Flexbox,FlexboxItem} from 'vux/src/components/flexbox'
-import {search} from '../../config/api'
+import {search,getDestination} from '../../config/api'
 export default {
   	data () {
 	    return {
@@ -70,7 +70,8 @@ export default {
 	    	day: "",
 	    	dropBol: false,
 	    	days: [{day:3},{day:4},{day:5},{day:6},{day:''}],
-	    	areas:[{name:'澳门'},{name:'香港'},{name:'澳大利亚'},{name:'曼谷'},{name:'普吉岛'},{name:'巴黎'},{name:''}],
+	    	areas: [],
+	    	areasIndex: '',
 	    	prekeyword:'',
 	    	prePage: '',
 	    }
@@ -132,6 +133,27 @@ export default {
 	    	this.$router.push(`./goodDetail?goods_id=${id}`);
 	    }
 	},
+	mounted(){
+		this.$nextTick(()=>{
+			getDestination().then(res=>{
+				let {errcode,message,content} = res;
+				if (errcode!==0) {
+      				 this.$vux.toast.show({
+	                    text: message,
+	                    time: 3000,
+	                    type: "text",
+	                    width: "12em",
+	                    position: 'bottom'
+	                })
+      			}else{
+      				let empty = {"address_id":"","name":""};
+      				content.push(empty);
+      				this.areasIndex = content.length-1;
+      				this.areas = content;
+      			}
+			})
+		})
+	}
 }
 </script>
 <style type="text/css" lang='scss' scoped>

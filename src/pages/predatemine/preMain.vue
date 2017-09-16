@@ -123,15 +123,14 @@ export default {
 }
 .scrollBox{
     overflow-x: scroll;
-	@include border-bottom-1px($border_color);
 }
 .scroll {
 	width: 100%;
  	height: 95px;
  	padding: 15px 12px;
   	position: relative;
+  	@include border-bottom-1px($border_color);
 }
-
 .scroll-item {
 	display:inline-block;
 	position: relative;

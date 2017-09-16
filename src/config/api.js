@@ -55,6 +55,10 @@ export const search = params =>{
 	params = trans(params);
 	return axios.get(`${base}/initAction/search?${params}`).then(res=>res.data);
 }
+// 获取目的地列表
+export const getDestination = ()=>{
+	return axios.get(`${base}/initAction/getDestination`).then(res=>res.data);
+}
 // 优惠券推送
 export const pushCoupon = params =>{
 	params =  trans(params);

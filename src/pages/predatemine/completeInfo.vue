@@ -272,33 +272,26 @@ export default {
   		},
   		submitPayfor(){
   			let openid = this.getCookie('openid');
-  			let checkCoupons;
+  			let checkCoupons='';
   			let coupons = this.coupons;
   			for(let i = 0;i<coupons.length;i++ ){
   				if (coupons[i].checkBol) {
-  					checkCoupons={
-  						coupon_id: coupons[i].coupon_id,
-  						discount: coupons[i].discount-0+""
-  					}
+  					checkCoupons+=coupons[i].coupon_id;
   				}
-  			}
-  			if (checkCoupons) {
-  				let arr = [checkCoupons];
-  				checkCoupons = JSON.stringify(arr);
   			}
   			let params = {
   				access_token: this.userInfo.access_token,
   				order_sn: this.order_sn,
   				sum: this.sum,
   				openid: openid,
-  				coupons: checkCoupons?checkCoupons:""
+  				coupons: checkCoupons
   			}
   			pay(params).then(res=>{
   				let {errcode,message,content} = res;
       			if (errcode!==0) {
       				this.errcode(errcode,message);
       			}else{
-      				let _this=  this;
+      				let _this = this;
       				if (this.sum-this.couponsCount>0) {
 	      				WeixinJSBridge.invoke('getBrandWCPayRequest',
 	                    {
@@ -313,10 +306,7 @@ export default {
 		                        // WeixinJSBridge.log(res.err_msg);
 		                        // alert(res.err_code+res.err_desc+res.err_msg);
 		                        let  err_msg = res.err_msg;
-		                        sessionStorage.passenger = null;
-		                        sessionStorage.preBaseInfo= null;
-		                        sessionStorage.special =null;
-		                        _this.$router.push('./mine');
+		                        _this.$router.replace('./mine');
 		                    }
       					);
       				}else{
@@ -325,7 +315,7 @@ export default {
 			  				time: 3000,
 			  				position: 'middle',
 			  				onHide(){
-			  					_this.$router.push('./mine');
+			  					_this.$router.replace('./mine');
 			  				}
 			  			})
       				}

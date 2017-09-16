@@ -12,9 +12,10 @@
       			<div class="priceBox">
       				<em class="price">{{order.order_amount-0|currency}}</em>
       				<span class="notice" v-if='order.order_state==="1"'>待付款</span>
-      				<span class="notice" v-if='order.order_state==="2"'>待确认</span>
-      				<span class="notice" v-if='order.order_state==="3"'>已确认</span>
-      				<span class="notice" v-if='order.order_state==="4"'>确认失败</span>
+      				<span class="notice" v-if='order.order_state==="2"&&is_refund==0'>已付款，待确认</span>
+      				<span class="notice" v-if='order.order_state==="2"&&is_refund==1'>订单已申请退款 </span>
+      				<span class="notice" v-if='order.order_state==="3"'>已付款，已确认</span>
+      				<span class="notice" v-if='order.order_state==="4"'>审核失败，系统已为您退款</span>
       				<span class="notice" v-if='order.order_state==="5"'>正在进行</span>
       				<span class="notice" v-if='order.order_state==="6"'>已完成</span>
       				<span class="notice" v-if='order.order_state==="7"'>退款中</span>
@@ -27,7 +28,7 @@
       			</div>
       		</dd>
     	</dl>
-    	<div class="travelInfo">
+    	<div class="travelInfo" v-if='hotel.length||flight.length'>
     		<div v-if='hotel.length'>
 	  			<h1>酒店信息<em :class='{"primary":order.hotel_confirm==="0"}'>{{order.hotel_confirm==='1'?"（已确认）":"（未确认）"}}</em><a href="javascript:void(0)" @click='checkDetail'>详情</a></h1>
 	  			<dl v-for='(item,index) in hotel' :key='index'>
@@ -101,6 +102,9 @@
   			<div class="order">
   				<span>订单编号：</span>{{order.order_sn}}
   			</div>
+  			<div class="order" v-if='couponsInfo.length'>
+  				<span>优惠减免：</span>{{couponsInfo[0].discount}}
+  			</div>
   			<div class="order">
   				<span>下单时间：</span>{{order.date_add*1000|dateStyle}}&nbsp;{{order.date_add*1000|timeStyle}}
   			</div>
@@ -109,7 +113,7 @@
   			</p>
   		</div>
     </div>
-	<div class="submit" v-if='order.order_state==="1"||order.order_state==="2"||order.order_state==="7"'>
+	<div class="submit" v-if='order.order_state==="1"||(order.order_state==="2"&&is_refund==0)||order.order_state==="7"'>
 		<dl class="nopay" v-if='order.order_state==="1"'>
 			<dt @click='cancelOrderFn(order.id)'>取消订单</dt>
 			<dd @click='payfor=true'>立即支付</dd>
@@ -117,7 +121,7 @@
 		<div v-if='order.order_state==="2"||order.order_state==="3"' @click='refundFn(order.id)'>
 			退款
 		</div>
-     	<div v-if='order.order_state==="7"' @click='cancelRefund(order,id)'>
+     	<div v-if='order.order_state==="7"' @click='cancelRefundFn(order.id)'>
 			取消退款
 		</div>
     </div>
@@ -154,7 +158,10 @@
 			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{(order.order_amount-couponsCount)>0?(order.order_amount-couponsCount):0|currency}}</em>
+  					总价：<em v-if='!order.pay_amount'>{{(order.order_amount-couponsCount)>0?(order.order_amount-couponsCount):0|currency}}</em>
+  					<em v-else>
+  						{{order.pay_amount|currency}}
+  					</em>
   				</span>
   			</div>
   			<div class="submitPayfor" @click='submitPayfor'>
@@ -190,7 +197,9 @@ export default {
 	    	coupons: [],
 	    	couponsIndex: "",
 	    	couponsCount: 0,
-	    	date:''
+	    	date:'',
+	    	is_refund: '',
+	    	couponsInfo: ''
 	    }
   	},
 	components: {
@@ -252,6 +261,8 @@ export default {
       				this.special = content.special;
       				this.hotel = content.hotel?content.hotel:this.hotel;
 					this.flight = content.flight?content.flight:this.flight;
+					this.is_refund = content.is_refund;
+					this.couponsInfo = content.coupon?content.coupon:'';
 					this.$vux.loading.hide();
       			}
   			})
@@ -279,7 +290,10 @@ export default {
 			                    time: 3000,
 			                    type: "text",
 			                    width: "12em",
-			                    position: 'bottom'
+			                    position: 'bottom',
+			                    onHide(){
+			                    	_this.getDetail();
+			                    }
 			                })
 		      			}
 		  			})
@@ -294,7 +308,7 @@ export default {
                     time: 3000,
                     type: "text",
                     width: "12em",
-                    position: 'bottom'
+                    position: 'bottom',
                 })
   			}else{
   				let msg = '是否申请退款';
@@ -318,19 +332,15 @@ export default {
 	    submitPayfor(){
   			let order = this.order;
   			let openid = this.getCookie('openid');
-  			let checkCoupons;
+  			let checkCoupons='';
   			let coupons = this.coupons;
   			for(let i = 0;i<coupons.length;i++ ){
   				if (coupons[i].checkBol) {
-  					checkCoupons={
-  						coupon_id: coupons[i].coupon_id,
-  						discount: coupons[i].discount-0+""
-  					}
+  					checkCoupons+=coupons[i].coupon_id;
   				}
   			}
-  			if (checkCoupons) {
-  				let arr = [checkCoupons];
-  				checkCoupons = JSON.stringify(arr);
+  			if (this.order.coupon_ids) {
+  				checkCoupons+=this.order.coupon_ids;
   			}
   			let params = {
   				access_token: this.userInfo.access_token,
@@ -338,7 +348,8 @@ export default {
   				sum: order.order_amount,
   				payType: "2",
   				openid: openid,
-  				coupons: checkCoupons?checkCoupons:""
+  				coupons: checkCoupons,
+  				pay_amount: order.pay_amount?order.pay_amount:''
   			}
   			pay(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -360,7 +371,7 @@ export default {
 		                        // WeixinJSBridge.log(res.err_msg);
 		                        // alert(res.err_code+res.err_desc+res.err_msg);
 		                        let  err_msg = res.err_msg;
-		                      	 _this.$router.push('./mine');
+		                      	 _this.$router.replace('./mine');
 		                    }
 		                );
       				}else{
@@ -369,7 +380,7 @@ export default {
 			  				time: 3000,
 			  				position: 'middle',
 			  				onHide(){
-			  					_this.$router.push('./mine');
+			  					_this.$router.replace('./mine');
 			  				}
 			  			})
       				}

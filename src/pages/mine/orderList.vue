@@ -99,7 +99,8 @@
 			</ul>
   			<div class="totalPrice">
   				<span>
-  					总价：<em>{{(payItem.order_amount-couponsCount)>0?(payItem.order_amount-couponsCount):0|currency}}</em>
+  					总价：<em v-if='!payItem.pay_amount'>{{(payItem.order_amount-couponsCount)>0?(payItem.order_amount-couponsCount):0|currency}}</em>
+  					<em v-else>{{payItem.pay_amount|currency}}</em>
   				</span>
   			</div>
   			<div class="submitPayfor" @click='submitPayfor'>
@@ -128,7 +129,7 @@ export default {
 	    	orderList: [],
 	    	payfor: false,
 	    	payType: true,
-	    	payItem: {},
+	    	payItem: {pay_amount:0},
 	    	coupons: [],
 	    	couponsIndex: "",
 	    	couponsCount: 0,
@@ -154,7 +155,6 @@ export default {
       					content[i].checkBol =  false;
       				}
       				this.coupons = content;
-      				console.log(this.coupons)
       			}
   			})
   		},
@@ -222,19 +222,15 @@ export default {
   		submitPayfor(){
   			let order = this.payItem;
   			let openid = this.getCookie('openid');
-  			let checkCoupons;
+  			let checkCoupons='';
   			let coupons = this.coupons;
   			for(let i = 0;i<coupons.length;i++ ){
   				if (coupons[i].checkBol) {
-  					checkCoupons={
-  						coupon_id: coupons[i].coupon_id,
-  						discount: coupons[i].discount-0+""
-  					}
+  					checkCoupons+=coupons[i].coupon_id;
   				}
   			}
-  			if (checkCoupons) {
-  				let arr = [checkCoupons];
-  				checkCoupons = JSON.stringify(arr);
+  			if (this.order.coupon_ids) {
+  				checkCoupons+=this.order.coupon_ids;
   			}
   			let params = {
   				access_token: this.userInfo.access_token,
@@ -242,7 +238,8 @@ export default {
   				sum: order.order_amount,
   				payType: "2",
   				openid: openid,
-  				coupons: checkCoupons?checkCoupons:""
+  				coupons: checkCoupons,
+  				pay_amount: order.pay_amount?order.pay_amount:''
   			}
   			pay(params).then(res=>{
   				let {errcode,message,content} = res;
@@ -264,7 +261,7 @@ export default {
 		                        // WeixinJSBridge.log(res.err_msg);
 		                        // alert(res.err_code+res.err_desc+res.err_msg);
 		                        let  err_msg = res.err_msg;
-		                       	_this.$router.push('./mine');
+		                       	_this.$router.replace('./mine');
 		                    }	
 		                );
       				}else{
@@ -273,7 +270,7 @@ export default {
 			  				time: 3000,
 			  				position: 'middle',
 			  				onHide(){
-			  					_this.$router.push('./mine');
+			  					_this.$router.replace('./mine');
 			  				}
 			  			})
       				}

@@ -10,8 +10,8 @@
 	     		<dt class="name" v-text='detail.name'></dt>
 	     		<dd class="detail" v-text='detail.explain'></dd>
 	     		<dd class="price">
-	     			<span><strong>{{detail.price-0|currency}}</strong>/月/人</span>起
-			      	<em>{{detail.market_price|currency}}/人</em>
+	     			<span><strong>{{(detail.price-0)/12|currency}}</strong>/月/人</span>起
+			      	<em>{{(detail.market_price/12)|currency}}/月/人</em>
 			      	<i>{{detail.sale_count}}人购买</i> 
 	     		</dd>
 	     	</dl>

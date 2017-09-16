@@ -9,8 +9,8 @@
 		      			<div class="name" v-text='item.name'></div>
 		      			<div class="detail" v-text='item.explain'></div>
 		      			<div class="price">
-		      				<span><strong>{{(item.price-0).toFixed(2)|currency}}</strong>/月/人起</span>
-		      				<em>{{(item.market_price-0).toFixed(2)|currency}}/人</em> 
+		      				<span><strong>{{((item.price-0)/12).toFixed(2)|currency}}</strong>/月/人起</span>
+		      				<em>{{((item.market_price-0)/12).toFixed(2)|currency}}/月/人</em> 
 		      			</div>
 		      		</dt>
 		      		<dd>
