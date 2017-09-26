@@ -69,7 +69,7 @@ export default {
   			if (phone) {
   				let params = {
 	      			phone: this.phone,
-	      			type: '1',
+	      			type: '4',
 	      			sign: this.hex_md5(`${this.phone}sendCode`)
 	      		}
 	      		sendCode(params).then(res=>{
@@ -123,7 +123,7 @@ export default {
 	    			passwd: this.hex_md5(this.passwd),
 	    			confirm_passwd: this.hex_md5(this.confirm_passwd),
 	    			verify: this.verify,
-	    			type: 1
+	    			type: '4'
 	    		}
 	    		resetPasswd(params).then(res=>{
 	    			let {errcode,message} = res;
