@@ -75,7 +75,11 @@ router.afterEach((to, from, next) => {
     }
     let openid = mixins.methods.getCookie("openid");
     if (!openid) {
-        const redirectUrl = encodeURIComponent("http://hengyou.zertone1.com/app/userAction/loginByWeixin" );
+    	// 测试地址
+    	// let callbackUrl = 'hengyou.zertone1.com';
+    	// 线上地址
+    	let callbackUrl = 'sadmin.mego-trip.com';
+        const redirectUrl = encodeURIComponent("http://"+callbackUrl+"/app/userAction/loginByWeixin" );
         let href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9a65a78e25129b57&redirect_uri="+redirectUrl+"&response_type=code&scope=snsapi_userinfo&state=1#wechat_redirect";
             window.location.href = href;
     }

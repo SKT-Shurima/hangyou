@@ -1,9 +1,8 @@
-import axios from 'axios'
-
-// 开发
-// let base = '/hengyou' ;
+import axios from 'axios';
 // 测试
-let base = 'http://hengyou.zertone1.com/app'
+// let base = 'http://hengyou.zertone1.com/app';
+// 线上地址
+let base = 'http://sadmin.mego-trip.com';
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 axios.defaults.headers.get['Content-Type'] = 'application/x-www-form-urlencoded';
 
