@@ -24,7 +24,8 @@ module.exports = {
         port: 8026,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
-        proxypath: 'http://hengyou.zertone1.com/app',
+        // proxypath: 'http://hengyou.zertone1.com/app',
+        proxypath: 'http://sadmin.mego-trip.com/app',
         context:['/hengyou'],
         // proxyTable: {
         //     '/hengyou': {
