@@ -1,0 +1,11 @@
+本项目采用前后端分离开发模式,前端采用vue2.0 SPA开发
+前端技术栈:vue2.0+es6+webpack+axios+vux+sass
+1.安装依赖  项目下打开命令窗口/终端  运行命令cnpm i
+2.npm run dev  本地运行项目
+3.npm run build 打包项目上线
+
+文件说明:
+src/config/api.js   接口文件
+src/pages  组件文件夹
+src/router/router.js  路由文件(可在该文件下增加页面配置路由)
+src/main.js   入口文件
